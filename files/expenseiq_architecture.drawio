@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+  <root>
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+
+    <!-- ===== TITLE BAR ===== -->
+    <mxCell id="title_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C00000;strokeColor=#C00000;fontColor=#ffffff;" vertex="1" parent="1">
+      <mxGeometry x="40" y="20" width="1560" height="60" as="geometry" />
+    </mxCell>
+    <mxCell id="title_text" value="💰  EXPENSEIQ — Complete System Architecture   ·   React  +  FastAPI  +  SQLite  +  Claude AI" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontColor=#ffffff;" vertex="1" parent="1">
+      <mxGeometry x="40" y="20" width="1560" height="60" as="geometry" />
+    </mxCell>
+
+    <!-- ===== SECTION 1: FRONTEND ===== -->
+    <mxCell id="s1_label" value="① FRONTEND LAYER — React 18 + TypeScript + Vite" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=15;fontStyle=1;fontColor=#1971c2;" vertex="1" parent="1">
+      <mxGeometry x="40" y="100" width="700" height="30" as="geometry" />
+    </mxCell>
+
+    <!-- Pages -->
+    <mxCell id="pg_dash" value="🏠 Dashboard&#xa;KPIs · Charts · Recent Txns · AI Insights" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#1971c2;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="40" y="140" width="270" height="70" as="geometry" />
+    </mxCell>
+    <mxCell id="pg_txn" value="💸 Transactions&#xa;CRUD · Filter · Search · Import · Export" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#1971c2;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="330" y="140" width="270" height="70" as="geometry" />
+    </mxCell>
+    <mxCell id="pg_ins" value="🤖 Insights&#xa;AI Report · Spikes · Recommendations · Chat" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#1971c2;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="620" y="140" width="270" height="70" as="geometry" />
+    </mxCell>
+    <mxCell id="pg_bud" value="🎯 Budgets&#xa;Per-Category Limits · Progress · Recurring" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#1971c2;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="910" y="140" width="270" height="70" as="geometry" />
+    </mxCell>
+    <mxCell id="pg_set" value="⚙️ Settings&#xa;Categories · Currency · Import · Backup" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#1971c2;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="1200" y="140" width="270" height="70" as="geometry" />
+    </mxCell>
+
+    <!-- UI Components row -->
+    <mxCell id="ui_charts" value="📊 Recharts&#xa;AreaChart · Donut · BarChart · HeatMap" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#1971c2;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="40" y="230" width="250" height="60" as="geometry" />
+    </mxCell>
+    <mxCell id="ui_layout" value="🗂️ Layout&#xa;Sidebar · Header · Dark Theme" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#1971c2;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="310" y="230" width="230" height="60" as="geometry" />
+    </mxCell>
+    <mxCell id="ui_modals" value="🪟 Modals&#xa;Add · Edit · Confirm · Recurring" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#1971c2;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="560" y="230" width="230" height="60" as="geometry" />
+    </mxCell>
+    <mxCell id="ui_api" value="🔌 API Client (Axios)&#xa;Auto error toasts · Typed calls" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#1971c2;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="810" y="230" width="250" height="60" as="geometry" />
+    </mxCell>
+    <mxCell id="ui_types" value="🏷️ TypeScript Types&#xa;Expense · Budget · Insight · Category" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#1971c2;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="1080" y="230" width="250" height="60" as="geometry" />
+    </mxCell>
+
+    <!-- Arrow down to backend -->
+    <mxCell id="arr1" value="HTTP / REST  ⬇" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=13;fontStyle=1;fontColor=#868e96;" vertex="1" parent="1">
+      <mxGeometry x="650" y="306" width="300" height="30" as="geometry" />
+    </mxCell>
+
+    <!-- ===== SECTION 2: BACKEND ===== -->
+    <mxCell id="s2_label" value="② BACKEND LAYER — FastAPI + Python 3.11 + SQLModel" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=15;fontStyle=1;fontColor=#d6b656;" vertex="1" parent="1">
+      <mxGeometry x="40" y="345" width="800" height="30" as="geometry" />
+    </mxCell>
+
+    <!-- Routers row -->
+    <mxCell id="r_exp" value="🗂️ /expenses&#xa;GET · POST · PUT · DELETE&#xa;Bulk CSV Import" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="40" y="385" width="210" height="80" as="geometry" />
+    </mxCell>
+    <mxCell id="r_cat" value="🏷️ /categories&#xa;GET · POST · PUT&#xa;DELETE + Reassign" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="270" y="385" width="210" height="80" as="geometry" />
+    </mxCell>
+    <mxCell id="r_bud" value="🎯 /budgets&#xa;GET · POST · PUT&#xa;/status → live %used" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="500" y="385" width="210" height="80" as="geometry" />
+    </mxCell>
+    <mxCell id="r_rec" value="🔁 /recurring&#xa;GET · POST · PUT · DELETE&#xa;/run → execute due rules" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="730" y="385" width="210" height="80" as="geometry" />
+    </mxCell>
+    <mxCell id="r_ins" value="🤖 /insights&#xa;GET · /generate · /chat&#xa;/spikes · /monthly-report" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="960" y="385" width="210" height="80" as="geometry" />
+    </mxCell>
+    <mxCell id="r_ana" value="📈 /analytics&#xa;summary · trends · breakdown&#xa;heatmap · mom-comparison" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="1190" y="385" width="210" height="80" as="geometry" />
+    </mxCell>
+    <mxCell id="r_exp2" value="📤 /exports&#xa;CSV Download&#xa;Excel (.xlsx) 3-Sheet Report" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="1420" y="385" width="180" height="80" as="geometry" />
+    </mxCell>
+
+    <!-- Services row -->
+    <mxCell id="svc_lbl" value="SERVICES:" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=12;fontStyle=1;fontColor=#d6b656;" vertex="1" parent="1">
+      <mxGeometry x="40" y="480" width="100" height="24" as="geometry" />
+    </mxCell>
+    <mxCell id="svc_exp" value="expense_service.py&#xa;Business logic + validation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="150" y="478" width="220" height="50" as="geometry" />
+    </mxCell>
+    <mxCell id="svc_ana" value="analytics_service.py&#xa;Spike detection + aggregations" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="390" y="478" width="220" height="50" as="geometry" />
+    </mxCell>
+    <mxCell id="svc_ai" value="ai_service.py&#xa;Claude API calls + context builder" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="630" y="478" width="220" height="50" as="geometry" />
+    </mxCell>
+    <mxCell id="svc_rec" value="recurring_service.py&#xa;Scheduler + due-date engine" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="870" y="478" width="220" height="50" as="geometry" />
+    </mxCell>
+    <mxCell id="svc_exp2" value="export_service.py&#xa;pandas CSV + openpyxl Excel" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="1110" y="478" width="220" height="50" as="geometry" />
+    </mxCell>
+
+    <!-- Arrow down -->
+    <mxCell id="arr2" value="reads / writes  ⬇" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=13;fontStyle=1;fontColor=#868e96;" vertex="1" parent="1">
+      <mxGeometry x="650" y="540" width="300" height="30" as="geometry" />
+    </mxCell>
+
+    <!-- ===== SECTION 3: DATA LAYER ===== -->
+    <mxCell id="s3_label" value="③ DATA LAYER — SQLite + SQLModel" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=15;fontStyle=1;fontColor=#27a745;" vertex="1" parent="1">
+      <mxGeometry x="40" y="580" width="700" height="30" as="geometry" />
+    </mxCell>
+
+    <mxCell id="tbl_exp" value="📋 expenses&#xa;id · amount · description&#xa;category_id · merchant&#xa;date · is_recurring · notes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#27a745;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="40" y="620" width="220" height="100" as="geometry" />
+    </mxCell>
+    <mxCell id="tbl_cat" value="🏷️ categories&#xa;id · name · color · icon" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#27a745;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="280" y="620" width="220" height="100" as="geometry" />
+    </mxCell>
+    <mxCell id="tbl_bud" value="🎯 budgets&#xa;id · category_id&#xa;monthly_limit · month · year" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#27a745;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="520" y="620" width="220" height="100" as="geometry" />
+    </mxCell>
+    <mxCell id="tbl_rec" value="🔁 recurring_rules&#xa;id · name · amount&#xa;frequency · next_due_date" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#27a745;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="760" y="620" width="220" height="100" as="geometry" />
+    </mxCell>
+    <mxCell id="tbl_ai" value="🤖 ai_insights&#xa;id · type · title · content&#xa;severity · month · year" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#27a745;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="1000" y="620" width="220" height="100" as="geometry" />
+    </mxCell>
+
+    <!-- ===== SECTION 4: EXTERNAL / OUTPUT ===== -->
+    <mxCell id="s4_label" value="④ EXTERNAL SERVICES + OUTPUT" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=15;fontStyle=1;fontColor=#7950f2;" vertex="1" parent="1">
+      <mxGeometry x="40" y="740" width="700" height="30" as="geometry" />
+    </mxCell>
+
+    <mxCell id="ext_claude" value="🤖 Anthropic Claude API&#xa;claude-sonnet-4-20250514&#xa;Insights · Chat · Report" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#7950f2;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="40" y="780" width="280" height="90" as="geometry" />
+    </mxCell>
+    <mxCell id="ext_csv" value="📄 CSV Export&#xa;pandas DataFrame → .csv&#xa;Filtered by month / category" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#C00000;fontSize=13;" vertex="1" parent="1">
+      <mxGeometry x="360" y="780" width="260" height="90" as="geometry" />
+    </mxCell>
+    <mxCell id="ext_xlsx" value="📊 Excel Export (.xlsx)&#xa;Sheet 1: Transactions&#xa;Sheet 2: Summary  ·  Sheet 3: Overview" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#C00000;fontSize=13;" vertex="1" parent="1">
+      <mxGeometry x="660" y="780" width="280" height="90" as="geometry" />
+    </mxCell>
+    <mxCell id="ext_git" value="🐙 GitHub Repo&#xa;VSCode + Copilot workflow&#xa;Push · PR · Version control" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#7950f2;fontSize=13;" vertex="1" parent="1">
+      <mxGeometry x="980" y="780" width="260" height="90" as="geometry" />
+    </mxCell>
+
+    <!-- ===== PHASE TIMELINE ===== -->
+    <mxCell id="s5_label" value="⑤ BUILD PHASES — GitHub Copilot Workflow" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=15;fontStyle=1;fontColor=#C00000;" vertex="1" parent="1">
+      <mxGeometry x="40" y="895" width="800" height="30" as="geometry" />
+    </mxCell>
+
+    <mxCell id="ph0" value="Phase 0&#xa;⚙️ Setup&#xa;Folders · venv&#xa;npm · git init" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#C00000;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="40" y="935" width="175" height="90" as="geometry" />
+    </mxCell>
+    <mxCell id="arr_p01" value="→" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=18;fontColor=#868e96;" vertex="1" parent="1">
+      <mxGeometry x="220" y="965" width="30" height="30" as="geometry" />
+    </mxCell>
+    <mxCell id="ph1" value="Phase 1&#xa;🗄️ Backend&#xa;DB · Models · CRUD&#xa;expenses + categories" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#C00000;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="255" y="935" width="175" height="90" as="geometry" />
+    </mxCell>
+    <mxCell id="arr_p12" value="→" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=18;fontColor=#868e96;" vertex="1" parent="1">
+      <mxGeometry x="435" y="965" width="30" height="30" as="geometry" />
+    </mxCell>
+    <mxCell id="ph2" value="Phase 2&#xa;🖥️ Frontend Shell&#xa;Routing · Layout&#xa;Types · API Client" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#C00000;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="470" y="935" width="175" height="90" as="geometry" />
+    </mxCell>
+    <mxCell id="arr_p23" value="→" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=18;fontColor=#868e96;" vertex="1" parent="1">
+      <mxGeometry x="650" y="965" width="30" height="30" as="geometry" />
+    </mxCell>
+    <mxCell id="ph3" value="Phase 3&#xa;📊 Core UI&#xa;Dashboard · Charts&#xa;Transactions · Budgets" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#C00000;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="685" y="935" width="175" height="90" as="geometry" />
+    </mxCell>
+    <mxCell id="arr_p34" value="→" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=18;fontColor=#868e96;" vertex="1" parent="1">
+      <mxGeometry x="865" y="965" width="30" height="30" as="geometry" />
+    </mxCell>
+    <mxCell id="ph4" value="Phase 4&#xa;🤖 AI Layer&#xa;Insights · Spike Detect&#xa;Chat Panel · Reports" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#C00000;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="900" y="935" width="175" height="90" as="geometry" />
+    </mxCell>
+    <mxCell id="arr_p45" value="→" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=18;fontColor=#868e96;" vertex="1" parent="1">
+      <mxGeometry x="1080" y="965" width="30" height="30" as="geometry" />
+    </mxCell>
+    <mxCell id="ph5" value="Phase 5&#xa;📤 Exports&#xa;CSV · Excel · Recurring&#xa;Settings Page" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#C00000;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="1115" y="935" width="175" height="90" as="geometry" />
+    </mxCell>
+    <mxCell id="arr_p56" value="→" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=18;fontColor=#868e96;" vertex="1" parent="1">
+      <mxGeometry x="1295" y="965" width="30" height="30" as="geometry" />
+    </mxCell>
+    <mxCell id="ph6" value="Phase 6&#xa;✨ Polish&#xa;Skeletons · Empty States&#xa;README · GitHub Push" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#C00000;fontSize=12;" vertex="1" parent="1">
+      <mxGeometry x="1330" y="935" width="175" height="90" as="geometry" />
+    </mxCell>
+
+  </root>
+</mxGraphModel>
