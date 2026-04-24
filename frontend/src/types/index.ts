@@ -10,7 +10,7 @@ export interface Expense {
   id: number;
   amount: number;
   description: string;
-  category_id: number;
+  category_id: number | null;
   category?: Category;
   merchant?: string;
   date: string;
@@ -43,7 +43,7 @@ export interface RecurringRule {
   id: number;
   name: string;
   amount: number;
-  category_id: number;
+  category_id: number | null;
   category?: Category;
   frequency: "daily" | "weekly" | "monthly" | "yearly";
   next_due_date: string;
@@ -56,7 +56,7 @@ export interface AIInsight {
   type: "outlier" | "spike" | "summary" | "recommendation";
   title: string;
   content: string;
-  severity: "info" | "warning" | "critical";
+  severity: "info" | "warning" | "critical" | null;
   month?: number;
   year?: number;
   is_dismissed: boolean;

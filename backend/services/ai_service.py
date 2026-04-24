@@ -4,6 +4,8 @@ from collections import defaultdict
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 
+from fastapi import HTTPException
+
 from anthropic import Anthropic
 from dotenv import load_dotenv
 from sqlmodel import Session, select
@@ -170,7 +172,13 @@ async def generate_monthly_insights(month: int, year: int, db: Session) -> list[
         messages=[{"role": "user", "content": json.dumps(data)}],
     )
     raw = message.content[0].text
-    parsed = json.loads(_strip_code_fences(raw))
+    try:
+        parsed = json.loads(_strip_code_fences(raw))
+    except (json.JSONDecodeError, ValueError) as exc:
+        raise HTTPException(
+            status_code=502,
+            detail="AI service returned an invalid response. Please try again.",
+        ) from exc
 
     # ── Delete existing non-dismissed insights for same month/year ───────────
     existing = db.exec(
@@ -346,7 +354,7 @@ def detect_spikes(month: int, year: int, db: Session) -> list[dict]:
             # Not enough history
             continue
 
-        rolling_avg = sum(prev_vals) / 3
+        rolling_avg = sum(prev_vals) / len(prev_vals)
         if rolling_avg == 0:
             continue
 

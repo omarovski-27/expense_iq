@@ -8,16 +8,12 @@ import toast from "react-hot-toast";
 import { getInsights, generateInsights, chatWithAI, getSpikes, dismissInsight } from "../api/insights";
 import { getMerchantBreakdown } from "../api/analytics";
 import type { AIInsight, SpikeResult, MerchantBreakdown } from "../types";
+import { formatCurrency } from "../utils/formatCurrency";
+import { useCurrency } from "../context/CurrencyContext";
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Helpers
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-function formatCurrency(v: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency", currency: "USD", minimumFractionDigits: 0, maximumFractionDigits: 0,
-  }).format(v);
-}
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -36,6 +32,7 @@ const EXAMPLE_PROMPTS = [
 
 export default function Insights() {
   const now = new Date();
+  const { currencySymbol } = useCurrency();
   const [currentMonth] = useState(getMonth(now) + 1);
   const [currentYear] = useState(getYear(now));
 
@@ -154,10 +151,6 @@ export default function Insights() {
   // â”€â”€ Derived â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const recommendations = insights.filter((i) => i.type === "recommendation").slice(0, 3);
 
-  // Find spike insight IDs (for dismiss â€” match by content)
-  function getSpikeInsightId(spike: SpikeResult): number | undefined {
-    return insights.find((i) => i.type === "spike" && i.content === spike.explanation)?.id;
-  }
 
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Render
@@ -243,7 +236,7 @@ export default function Insights() {
                     </span>
                   </div>
                   <button
-                    onClick={() => handleDismissSpike(getSpikeInsightId(spike))}
+                    onClick={() => handleDismissSpike(spike)}
                     className="text-gray-600 hover:text-gray-400 transition-colors ml-2 mt-0.5"
                     title="Dismiss"
                   >
@@ -252,8 +245,8 @@ export default function Insights() {
                 </div>
                 <p className="text-gray-400 text-xs leading-relaxed mt-2">{spike.explanation}</p>
                 <div className="mt-3 flex gap-3 text-xs text-gray-500">
-                  <span>This month: <span className="text-white">{formatCurrency(spike.current_spend)}</span></span>
-                  <span>Avg: <span className="text-gray-400">{formatCurrency(spike.rolling_avg)}</span></span>
+                  <span>This month: <span className="text-white">{formatCurrency(spike.current_spend, currencySymbol)}</span></span>
+                  <span>Avg: <span className="text-gray-400">{formatCurrency(spike.rolling_avg, currencySymbol)}</span></span>
                 </div>
               </div>
             ))}
@@ -282,7 +275,7 @@ export default function Insights() {
                 <tr key={m.merchant} className="text-gray-300 hover:bg-gray-700/30 transition-colors">
                   <td className="px-5 py-3 text-gray-500 font-mono">#{idx + 1}</td>
                   <td className="px-5 py-3 text-white font-medium">{m.merchant || "Unknown"}</td>
-                  <td className="px-5 py-3 text-right text-amber-400 font-medium">{formatCurrency(m.amount)}</td>
+                  <td className="px-5 py-3 text-right text-amber-400 font-medium">{formatCurrency(m.amount, currencySymbol)}</td>
                   <td className="px-5 py-3 text-right text-gray-400">{m.count}</td>
                 </tr>
               ))}
@@ -323,7 +316,7 @@ export default function Insights() {
                   {estimatedSavings !== null && !isNaN(estimatedSavings) && (
                     <div className="mt-3">
                       <span className="text-xs px-2 py-1 rounded-full bg-green-500/15 text-green-400 border border-green-500/30 font-medium">
-                        ðŸ’° Save up to {formatCurrency(estimatedSavings)}/month
+                        ðŸ’° Save up to {formatCurrency(estimatedSavings, currencySymbol)}/month
                       </span>
                     </div>
                   )}

@@ -3,6 +3,7 @@ import { Plus, TrendingDown, TrendingUp } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
 import { formatCurrency } from "../utils/formatCurrency";
+import { useCurrency } from "../context/CurrencyContext";
 import { getSummary, getTrends, getCategoryBreakdown } from "../api/analytics";
 import { getExpenses } from "../api/expenses";
 import { getBudgetStatus } from "../api/budgets";
@@ -47,6 +48,7 @@ export default function Dashboard() {
   const now = new Date();
   const month = now.getMonth() + 1;
   const year = now.getFullYear();
+  const { currencySymbol } = useCurrency();
 
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
@@ -56,6 +58,27 @@ export default function Dashboard() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [insights, setInsights] = useState<AIInsight[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
+
+  async function fetchAll() {
+    try {
+      const [s, t, cb, bs, e, i] = await Promise.all([
+        getSummary(month, year),
+        getTrends(),
+        getCategoryBreakdown(month, year),
+        getBudgetStatus(month, year),
+        getExpenses({ month, year, limit: 10 }),
+        getInsights({ limit: 3 }),
+      ]);
+      setSummary(s);
+      setTrends(t);
+      setBreakdown(cb);
+      setBudgetStatus(bs);
+      setExpenses(e);
+      setInsights(i);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   // Global keyboard shortcut: 'n' dispatches expenseiq:add-expense
   useEffect(() => {
@@ -67,27 +90,8 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    async function fetchAll() {
-      try {
-        const [s, t, cb, bs, e, i] = await Promise.all([
-          getSummary(month, year),
-          getTrends(),
-          getCategoryBreakdown(month, year),
-          getBudgetStatus(month, year),
-          getExpenses({ month, year, limit: 10 }),
-          getInsights({ limit: 3 }),
-        ]);
-        setSummary(s);
-        setTrends(t);
-        setBreakdown(cb);
-        setBudgetStatus(bs);
-        setExpenses(e);
-        setInsights(i);
-      } finally {
-        setLoading(false);
-      }
-    }
     fetchAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [month, year]);
 
   // ---- KPI helpers --------------------------------------------------------
@@ -123,7 +127,7 @@ export default function Dashboard() {
                 Total This Month
               </p>
               <p className="text-2xl font-bold text-white">
-                {formatCurrency(summary?.total_this_month ?? 0)}
+                {formatCurrency(summary?.total_this_month ?? 0, currencySymbol)}
               </p>
               <div className="flex items-center gap-1 mt-2">
                 {momPct <= 0 ? (
@@ -158,7 +162,7 @@ export default function Dashboard() {
                 Daily Average
               </p>
               <p className="text-2xl font-bold text-white">
-                {formatCurrency(summary?.daily_average ?? 0)}
+                {formatCurrency(summary?.daily_average ?? 0, currencySymbol)}
               </p>
               <p className="text-xs text-gray-500 mt-2">per day this month</p>
             </div>
@@ -175,7 +179,7 @@ export default function Dashboard() {
                     <span className="text-lg">{summary.top_category.name}</span>
                   </p>
                   <p className="text-xs text-gray-400 mt-2">
-                    {formatCurrency(summary.top_category.amount)}
+                    {formatCurrency(summary.top_category.amount, currencySymbol)}
                   </p>
                 </>
               ) : (
@@ -284,7 +288,7 @@ export default function Dashboard() {
                       )}
                     </td>
                     <td className="py-2 text-right font-medium text-white">
-                      {formatCurrency(exp.amount)}
+                      {formatCurrency(exp.amount, currencySymbol)}
                     </td>
                   </tr>
                 ))}
@@ -328,9 +332,7 @@ export default function Dashboard() {
           onClose={() => setShowAddModal(false)}
           onSaved={() => {
             setShowAddModal(false);
-            // Re-fetch expenses to update the recent list
-            getExpenses({ month, year, limit: 10 }).then(setExpenses);
-            getSummary(month, year).then(setSummary);
+            fetchAll();
           }}
         />
       )}

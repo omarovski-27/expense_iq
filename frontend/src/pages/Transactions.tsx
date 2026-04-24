@@ -3,7 +3,6 @@
   useEffect,
   useRef,
   useCallback,
-  useLayoutEffect,
 } from "react";
 import {
   Plus,
@@ -27,6 +26,8 @@ import { getCategories } from "../api/categories";
 import AddExpenseModal from "../components/expenses/AddExpenseModal";
 import EditExpenseModal from "../components/expenses/EditExpenseModal";
 import { formatCurrency } from "../utils/formatCurrency";
+import client from "../api/client";
+import { useCurrency } from "../context/CurrencyContext";
 
 import type { Expense, Category } from "../types";
 
@@ -174,7 +175,7 @@ export default function Transactions() {
   }
 
   function exportUrl(type: "csv" | "excel") {
-    const base = "http://localhost:8000/api/exports";
+    const base = `${client.defaults.baseURL}/exports`;
     const params = new URLSearchParams();
     if (filterMonth) params.set("month", String(filterMonth));
     if (filterYear) params.set("year", String(filterYear));
@@ -242,7 +243,7 @@ export default function Transactions() {
           type="text"
           data-search
           ref={searchInputRef}
-          placeholder="Search description or merchantâ€¦"
+          placeholder="Search description or merchant…"
           value={searchInput}
           onChange={(e) => handleSearchChange(e.target.value)}
           className="flex-1 min-w-[200px] bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500 placeholder-gray-500"
@@ -383,7 +384,7 @@ export default function Transactions() {
                       )}
                     </td>
                     <td className="px-4 py-3 text-right font-medium text-white whitespace-nowrap">
-                      {formatCurrency(exp.amount)}
+                      {formatCurrency(exp.amount, currencySymbol)}
                     </td>
                     <td className="px-4 py-3 text-center">
                       {exp.is_recurring && (

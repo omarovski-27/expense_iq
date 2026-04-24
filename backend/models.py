@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from typing import List, Literal, Optional
 
 from sqlalchemy import UniqueConstraint
@@ -14,7 +14,7 @@ class Category(SQLModel, table=True):
     name: str = Field(unique=True, index=True)
     color: str  # e.g. "#FF6B35"
     icon: str   # emoji
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     expenses: List["Expense"] = Relationship(back_populates="category")
 
@@ -28,21 +28,21 @@ class RecurringRule(SQLModel, table=True):
     next_due_date: date
     last_run_date: Optional[date] = None
     is_active: bool = True
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class Expense(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     amount: float = Field(gt=0)
     description: str
-    category_id: Optional[int] = Field(default=None, foreign_key="category.id")
-    merchant: Optional[str] = None
-    date: date
+    category_id: Optional[int] = Field(default=None, foreign_key="category.id", index=True)
+    merchant: Optional[str] = Field(default=None, index=True)
+    date: date = Field(index=True)
     is_recurring: bool = False
     recurring_id: Optional[int] = Field(default=None, foreign_key="recurringrule.id")
     notes: Optional[str] = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     category: Optional[Category] = Relationship(back_populates="expenses")
 
@@ -55,7 +55,7 @@ class Budget(SQLModel, table=True):
     monthly_limit: float = Field(gt=0)
     month: int = Field(ge=1, le=12)
     year: int
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class AIInsight(SQLModel, table=True):
@@ -67,7 +67,7 @@ class AIInsight(SQLModel, table=True):
     month: Optional[int] = None
     year: Optional[int] = None
     is_dismissed: bool = False
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 # ---------------------------------------------------------------------------

@@ -10,22 +10,25 @@
 } from "recharts";
 import type { SpendingTrend } from "../../types";
 import { formatCurrency } from "../../utils/formatCurrency";
+import { useCurrency } from "../../context/CurrencyContext";
 
 interface Props {
   data: SpendingTrend[];
 }
 
 function CustomTooltip({ active, payload, label }: TooltipProps<number, string>) {
+  const { currencySymbol } = useCurrency();
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-gray-800 border border-gray-700 rounded-lg p-3 text-white text-sm shadow-xl">
       <p className="text-gray-400 text-xs mb-1">{label}</p>
-      <p className="font-semibold text-amber-400">{formatCurrency(payload[0].value ?? 0)}</p>
+      <p className="font-semibold text-amber-400">{formatCurrency(payload[0].value ?? 0, currencySymbol)}</p>
     </div>
   );
 }
 
 export default function SpendingTrendChart({ data }: Props) {
+  const { currencySymbol } = useCurrency();
   return (
     <div>
       <div className="mb-3">
@@ -48,7 +51,7 @@ export default function SpendingTrendChart({ data }: Props) {
             tickLine={false}
           />
           <YAxis
-            tickFormatter={(v) => formatCurrency(v)}
+            tickFormatter={(v) => formatCurrency(v, currencySymbol)}
             tick={{ fill: "#9CA3AF", fontSize: 11 }}
             axisLine={false}
             tickLine={false}

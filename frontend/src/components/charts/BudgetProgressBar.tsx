@@ -1,16 +1,9 @@
 ﻿import type { BudgetStatus } from "../../types";
+import { formatCurrency } from "../../utils/formatCurrency";
+import { useCurrency } from "../../context/CurrencyContext";
 
 interface Props {
   data: BudgetStatus[];
-}
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
 }
 
 function barColor(pct: number) {
@@ -26,6 +19,7 @@ const STATUS_STYLES: Record<BudgetStatus["status"], { label: string; cls: string
 };
 
 export default function BudgetProgressBar({ data }: Props) {
+  const { currencySymbol } = useCurrency();
   if (data.length === 0) {
     return <p className="text-gray-500 text-sm">No budgets set for this month.</p>;
   }
@@ -45,9 +39,9 @@ export default function BudgetProgressBar({ data }: Props) {
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-xs text-gray-400">
-                  {formatCurrency(b.spent)}
+                  {formatCurrency(b.spent, currencySymbol)}
                   <span className="text-gray-600"> / </span>
-                  {formatCurrency(b.monthly_limit)}
+                  {formatCurrency(b.monthly_limit, currencySymbol)}
                 </span>
                 <span
                   className={`text-xs px-2 py-0.5 rounded-full border font-medium ${
@@ -74,11 +68,11 @@ export default function BudgetProgressBar({ data }: Props) {
               </span>
               {b.remaining > 0 ? (
                 <span className="text-xs text-gray-500">
-                  {formatCurrency(b.remaining)} remaining
+                  {formatCurrency(b.remaining, currencySymbol)} remaining
                 </span>
               ) : (
                 <span className="text-xs text-red-400">
-                  {formatCurrency(Math.abs(b.remaining))} over limit
+                  {formatCurrency(Math.abs(b.remaining), currencySymbol)} over limit
                 </span>
               )}
             </div>

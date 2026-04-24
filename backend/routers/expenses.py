@@ -30,7 +30,7 @@ def list_expenses(
     year: Optional[int] = Query(None, ge=2000),
     category_id: Optional[int] = Query(None),
     search: Optional[str] = Query(None),
-    limit: int = Query(50, ge=1, le=500),
+    limit: int = Query(50, ge=1, le=5000),
     offset: int = Query(0, ge=0),
     session: Session = Depends(get_session),
 ):
@@ -149,7 +149,11 @@ async def bulk_import(
     file: UploadFile = File(...),
     session: Session = Depends(get_session),
 ):
+    if not (file.filename or "").lower().endswith(".csv"):
+        raise HTTPException(status_code=400, detail="Only CSV files are accepted")
     content = await file.read()
+    if len(content) > 10 * 1024 * 1024:  # 10 MB
+        raise HTTPException(status_code=400, detail="File too large (max 10 MB)")
     text = content.decode("utf-8-sig")  # strip BOM if present
     reader = csv.DictReader(io.StringIO(text))
 

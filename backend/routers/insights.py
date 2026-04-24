@@ -37,7 +37,7 @@ class ChatBody(BaseModel):
 def list_insights(
     month: Optional[int] = None,
     year: Optional[int] = None,
-    type: Optional[str] = None,
+    insight_type: Optional[str] = None,
     limit: int = 20,
     session: Session = Depends(get_session),
 ):
@@ -51,8 +51,8 @@ def list_insights(
         query = query.where(AIInsight.month == month)
     if year is not None:
         query = query.where(AIInsight.year == year)
-    if type is not None:
-        query = query.where(AIInsight.type == type)
+    if insight_type is not None:
+        query = query.where(AIInsight.type == insight_type)
     return session.exec(query).all()
 
 
@@ -72,6 +72,10 @@ async def generate_insights(body: GenerateBody, session: Session = Depends(get_s
 
 @router.post("/chat")
 async def chat(body: ChatBody, session: Session = Depends(get_session)):
+    if not body.question.strip():
+        raise HTTPException(status_code=400, detail="Question cannot be empty")
+    if len(body.question) > 1000:
+        raise HTTPException(status_code=400, detail="Question is too long (max 1000 characters)")
     response = await chat_with_finances(body.question, session)
     return {"response": response}
 

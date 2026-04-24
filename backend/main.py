@@ -1,5 +1,7 @@
 from contextlib import asynccontextmanager
 
+import os
+
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -18,7 +20,10 @@ async def lifespan(app: FastAPI):
     # Process any recurring expenses that became due
     from services.recurring_service import process_recurring_expenses
     with Session(engine) as recurring_session:
-        process_recurring_expenses(recurring_session)
+        try:
+            process_recurring_expenses(recurring_session)
+        except Exception as e:
+            print(f"Warning: recurring expenses processing failed on startup: {e}")
 
     # Seed default categories if the table is empty
     default_categories = [
@@ -52,7 +57,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:5173").split(","),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

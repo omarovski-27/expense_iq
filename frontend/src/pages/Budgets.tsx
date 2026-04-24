@@ -16,16 +16,12 @@ import {
 } from "../api/recurring";
 
 import type { BudgetStatus, Category, RecurringRule } from "../types";
+import { formatCurrency } from "../utils/formatCurrency";
+import { useCurrency } from "../context/CurrencyContext";
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Helpers
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-function formatCurrency(v: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency", currency: "USD", minimumFractionDigits: 0, maximumFractionDigits: 0,
-  }).format(v);
-}
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -169,7 +165,7 @@ function RecurringModal({ rule, categories, onClose, onSaved }: RecurringModalPr
                 onChange={(e) => setForm({ ...form, category_id: e.target.value })}
                 className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
               >
-                <option value="">Selectâ€¦</option>
+                <option value="">Select…</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
                 ))}
@@ -191,7 +187,7 @@ function RecurringModal({ rule, categories, onClose, onSaved }: RecurringModalPr
             </button>
             <button type="submit" disabled={saving}
               className="flex-1 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-white font-medium text-sm transition-colors disabled:opacity-50">
-              {saving ? "Savingâ€¦" : rule ? "Save Changes" : "Add Rule"}
+              {saving ? "Saving…" : rule ? "Save Changes" : "Add Rule"}
             </button>
           </div>
         </form>
@@ -243,7 +239,7 @@ function InlineLimitEditor({ budgetId, categoryId, currentLimit, month, year, on
         className="text-white font-bold text-xl hover:text-amber-400 transition-colors"
         title="Click to edit"
       >
-        {formatCurrency(currentLimit)}
+        {formatCurrency(currentLimit, currencySymbol)}
       </button>
     );
   }
@@ -271,6 +267,7 @@ function InlineLimitEditor({ budgetId, categoryId, currentLimit, month, year, on
 
 export default function Budgets() {
   const now = new Date();
+  const { currencySymbol } = useCurrency();
   const [month, setMonth] = useState(getMonth(now) + 1);
   const [year, setYear] = useState(getYear(now));
 
@@ -282,6 +279,11 @@ export default function Budgets() {
   const [showRecurringModal, setShowRecurringModal] = useState(false);
   const [editingRule, setEditingRule] = useState<RecurringRule | null>(null);
   const [pendingDeleteRule, setPendingDeleteRule] = useState<number | null>(null);
+
+  // Add Budget form state
+  const [newBudgetCategoryId, setNewBudgetCategoryId] = useState("");
+  const [newBudgetLimit, setNewBudgetLimit] = useState("");
+  const [savingBudget, setSavingBudget] = useState(false);
 
   const currentYear = getYear(now);
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
@@ -319,6 +321,31 @@ export default function Budgets() {
   async function handleToggleRule(id: number) {
     await toggleRecurringRule(id);
     fetchAll();
+  }
+
+  async function handleAddBudget(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newBudgetCategoryId || !newBudgetLimit) {
+      toast.error("Category and limit are required");
+      return;
+    }
+    const limit = parseFloat(newBudgetLimit);
+    if (!limit || limit <= 0) { toast.error("Enter a valid limit"); return; }
+    setSavingBudget(true);
+    try {
+      await createBudget({
+        category_id: parseInt(newBudgetCategoryId),
+        monthly_limit: limit,
+        month,
+        year,
+      });
+      toast.success("Budget added!");
+      setNewBudgetCategoryId("");
+      setNewBudgetLimit("");
+      fetchAll();
+    } finally {
+      setSavingBudget(false);
+    }
   }
 
   // â”€â”€ Summary calculations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -362,9 +389,9 @@ export default function Budgets() {
         </div>
       ) : budgetStatus.length === 0 ? (
         <div className="bg-gray-800 rounded-xl border border-gray-700 p-10 text-center">
-          <p className="text-4xl mb-3">ðŸŽ¯</p>
+          <p className="text-4xl mb-3">🎯</p>
           <p className="text-white font-semibold mb-1">No budgets set</p>
-          <p className="text-gray-500 text-sm">Budgets will appear here once created via the API or settings.</p>
+          <p className="text-gray-500 text-sm">Add a budget below to start tracking your spending.</p>
         </div>
       ) : (
         <div className="grid grid-cols-3 gap-4">
@@ -406,18 +433,18 @@ export default function Budgets() {
                     </div>
                     <div>
                       <p className="text-xs text-gray-500">Spent</p>
-                      <p className="text-sm font-medium text-white">{formatCurrency(b.spent)}</p>
+                      <p className="text-sm font-medium text-white">{formatCurrency(b.spent, currencySymbol)}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Footer */}
                 <div className="mt-4 pt-3 border-t border-gray-700 flex justify-between text-xs text-gray-500">
-                  <span>Projected: <span className="text-gray-300">{formatCurrency(b.projected_month_end)}</span></span>
+                  <span>Projected: <span className="text-gray-300">{formatCurrency(b.projected_month_end, currencySymbol)}</span></span>
                   <span>
                     {b.remaining >= 0
-                      ? <span className="text-green-400">{formatCurrency(b.remaining)} left</span>
-                      : <span className="text-red-400">{formatCurrency(Math.abs(b.remaining))} over</span>}
+                      ? <span className="text-green-400">{formatCurrency(b.remaining, currencySymbol)} left</span>
+                      : <span className="text-red-400">{formatCurrency(Math.abs(b.remaining), currencySymbol)} over</span>}
                   </span>
                 </div>
               </div>
@@ -426,7 +453,53 @@ export default function Budgets() {
         </div>
       )}
 
-      {/* â”€â”€ Recurring Expense Manager â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Add Budget Form ------------------------------------------------ */}
+      {!loading && (
+        <div className="bg-gray-800 rounded-xl border border-gray-700 p-5">
+          <h2 className="text-white font-semibold mb-4 flex items-center gap-2">
+            <Plus size={16} className="text-amber-400" />
+            Add / Update Budget
+          </h2>
+          <form onSubmit={handleAddBudget} className="flex flex-wrap items-end gap-3">
+            <div>
+              <p className="text-xs text-gray-400 mb-1">Category *</p>
+              <select
+                required
+                value={newBudgetCategoryId}
+                onChange={(e) => setNewBudgetCategoryId(e.target.value)}
+                className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500 min-w-[160px]"
+              >
+                <option value="">Select category...</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <p className="text-xs text-gray-400 mb-1">Monthly Limit *</p>
+              <input
+                type="number"
+                step="0.01"
+                min="0.01"
+                required
+                value={newBudgetLimit}
+                onChange={(e) => setNewBudgetLimit(e.target.value)}
+                placeholder="0.00"
+                className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 w-32 focus:outline-none focus:border-amber-500"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={savingBudget}
+              className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+            >
+              {savingBudget ? "Saving..." : "Set Budget"}
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* -- Recurring Expense Manager --------------------------------------- */}
       <div className="bg-gray-800 rounded-xl border border-gray-700">
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-700">
           <div>
@@ -463,7 +536,7 @@ export default function Budgets() {
                 <>
                   <tr key={rule.id} className="text-gray-300 hover:bg-gray-700/30 transition-colors">
                     <td className="px-5 py-3 font-medium text-white">{rule.name}</td>
-                    <td className="px-5 py-3">{formatCurrency(rule.amount)}</td>
+                    <td className="px-5 py-3">{formatCurrency(rule.amount, currencySymbol)}</td>
                     <td className="px-5 py-3">
                       {rule.category ? (
                         <span
@@ -547,16 +620,16 @@ export default function Budgets() {
           <div className="grid grid-cols-4 gap-4 text-center">
             <div>
               <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Total Budgeted</p>
-              <p className="text-xl font-bold text-white">{formatCurrency(totalBudgeted)}</p>
+              <p className="text-xl font-bold text-white">{formatCurrency(totalBudgeted, currencySymbol)}</p>
             </div>
             <div>
               <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Total Spent</p>
-              <p className="text-xl font-bold text-white">{formatCurrency(totalSpent)}</p>
+              <p className="text-xl font-bold text-white">{formatCurrency(totalSpent, currencySymbol)}</p>
             </div>
             <div>
               <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Remaining</p>
               <p className={`text-xl font-bold ${totalRemaining >= 0 ? "text-green-400" : "text-red-400"}`}>
-                {formatCurrency(Math.abs(totalRemaining))}
+                {formatCurrency(Math.abs(totalRemaining), currencySymbol)}
               </p>
             </div>
             <div>

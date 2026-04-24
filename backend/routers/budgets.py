@@ -3,6 +3,7 @@ from datetime import date
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field as PydanticField
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select, func
 
@@ -10,6 +11,10 @@ from database import get_session
 from models import Budget, BudgetCreate, BudgetRead, Category, CategoryRead, Expense
 
 router = APIRouter(prefix="/budgets", tags=["budgets"])
+
+
+class BudgetUpdate(BaseModel):
+    monthly_limit: float = PydanticField(gt=0)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -139,7 +144,7 @@ def create_budget(body: BudgetCreate, session: Session = Depends(get_session)):
 @router.put("/{budget_id}", response_model=BudgetRead)
 def update_budget(
     budget_id: int,
-    body: BudgetCreate,
+    body: BudgetUpdate,
     session: Session = Depends(get_session),
 ):
     budget = session.get(Budget, budget_id)

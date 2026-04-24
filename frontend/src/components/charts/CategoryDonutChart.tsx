@@ -8,12 +8,14 @@
 } from "recharts";
 import type { CategoryBreakdown } from "../../types";
 import { formatCurrency } from "../../utils/formatCurrency";
+import { useCurrency } from "../../context/CurrencyContext";
 
 interface Props {
   data: CategoryBreakdown[];
 }
 
 function CustomTooltip({ active, payload }: TooltipProps<number, string>) {
+  const { currencySymbol } = useCurrency();
   if (!active || !payload?.length) return null;
   const entry = payload[0].payload as CategoryBreakdown & { name: string };
   return (
@@ -21,7 +23,7 @@ function CustomTooltip({ active, payload }: TooltipProps<number, string>) {
       <p className="font-medium mb-1">
         {entry.category.icon} {entry.category.name}
       </p>
-      <p className="text-amber-400">{formatCurrency(entry.amount)}</p>
+      <p className="text-amber-400">{formatCurrency(entry.amount, currencySymbol)}</p>
       <p className="text-gray-400 text-xs">{entry.percentage.toFixed(1)}% of total</p>
     </div>
   );
@@ -29,6 +31,7 @@ function CustomTooltip({ active, payload }: TooltipProps<number, string>) {
 
 // Center label rendered as a custom label component inside PieChart
 function CenterLabel({ total, cx, cy }: { total: number; cx?: number; cy?: number }) {
+  const { currencySymbol } = useCurrency();
   return (
     <g>
       <text
@@ -39,7 +42,7 @@ function CenterLabel({ total, cx, cy }: { total: number; cx?: number; cy?: numbe
         className="fill-white"
         style={{ fill: "#ffffff", fontSize: 14, fontWeight: 700 }}
       >
-        {formatCurrency(total)}
+        {formatCurrency(total, currencySymbol)}
       </text>
       <text
         x={cx}
@@ -55,6 +58,7 @@ function CenterLabel({ total, cx, cy }: { total: number; cx?: number; cy?: numbe
 }
 
 export default function CategoryDonutChart({ data }: Props) {
+  const { currencySymbol } = useCurrency();
   const total = data.reduce((sum, d) => sum + d.amount, 0);
 
   if (data.length === 0) {
@@ -106,7 +110,7 @@ export default function CategoryDonutChart({ data }: Props) {
                 </span>
               </div>
               <span className="text-gray-400 font-medium ml-2 whitespace-nowrap">
-                {formatCurrency(entry.amount)}
+                {formatCurrency(entry.amount, currencySymbol)}
               </span>
             </div>
           ))}

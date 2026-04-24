@@ -13,6 +13,8 @@ import {
   Upload,
   X,
 } from "lucide-react";
+import client from "../api/client";
+import { useCurrency } from "../context/CurrencyContext";
 
 import {
   createCategory,
@@ -125,6 +127,7 @@ export default function Settings() {
   const [lastBackup, setLastBackup] = useState<string | null>(getLastBackup);
 
   // â”€â”€ preferences state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const { setCurrencySymbol } = useCurrency();
   const [currency, setCurrency] = useState(getCurrency);
   const [dateFormat, setDateFormat] = useState<"MM/DD/YYYY" | "DD/MM/YYYY">(getDateFormat);
 
@@ -195,7 +198,7 @@ export default function Settings() {
     const ts = new Date().toISOString();
     localStorage.setItem(LS_LAST_BACKUP, ts);
     setLastBackup(ts);
-    window.open("http://localhost:8000/api/exports/csv", "_blank");
+    window.open(`${client.defaults.baseURL}/exports/csv`, "_blank");
   }
 
   function handleExportExcel() {
@@ -206,7 +209,7 @@ export default function Settings() {
     const month = now.getMonth() + 1;
     const year = now.getFullYear();
     window.open(
-      `http://localhost:8000/api/exports/excel?month=${month}&year=${year}`,
+      `${client.defaults.baseURL}/exports/excel?month=${month}&year=${year}`,
       "_blank"
     );
   }
@@ -227,7 +230,7 @@ export default function Settings() {
   // â”€â”€ preference handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   function saveCurrency(val: string) {
     setCurrency(val);
-    localStorage.setItem(LS_CURRENCY, val);
+    setCurrencySymbol(val);
   }
 
   function saveDateFormat(val: "MM/DD/YYYY" | "DD/MM/YYYY") {
@@ -502,7 +505,7 @@ export default function Settings() {
 
           <div className="pt-2">
             <a
-              href="https://github.com/YOUR_USERNAME/expenseiq"
+              href="https://github.com/omarovski-27/expense_iq"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-sm text-amber-400 hover:text-amber-300 transition-colors"
