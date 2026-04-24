@@ -563,7 +563,7 @@ export default function Budgets() {
                       >
                         <span
                           className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                            rule.is_active ? "translate-x-4.5" : "translate-x-0.5"
+                            rule.is_active ? "translate-x-5" : "translate-x-0.5"
                           }`}
                         />
                       </button>
@@ -613,6 +613,27 @@ export default function Budgets() {
           </table>
         )}
       </div>
+
+      {/* -- Recurring Total Summary --------------------------------------- */}
+      {recurringRules.length > 0 && (() => {
+        const activeCount = recurringRules.filter((r) => r.is_active).length;
+        const activeTotal = recurringRules
+          .filter((r) => r.is_active)
+          .reduce((s, r) => s + r.amount, 0);
+        return (
+          <div className="bg-gray-700 border border-gray-600 rounded-lg p-4 flex items-center justify-between">
+            <div>
+              <p className="text-gray-400 text-sm">Monthly Recurring Total</p>
+              <p className="text-gray-500 text-xs mt-0.5">
+                {activeCount} of {recurringRules.length} subscriptions active
+              </p>
+            </div>
+            <p className="text-amber-400 font-bold text-lg">
+              {formatCurrency(activeTotal, currencySymbol)}
+            </p>
+          </div>
+        );
+      })()}
 
       {/* â”€â”€ Summary Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {budgetStatus.length > 0 && (
