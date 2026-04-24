@@ -1,4 +1,4 @@
-from datetime import date, datetime, timezone
+from datetime import date as date_, datetime, timezone
 from typing import List, Literal, Optional
 
 from sqlalchemy import UniqueConstraint
@@ -25,8 +25,8 @@ class RecurringRule(SQLModel, table=True):
     amount: float = Field(gt=0)
     category_id: Optional[int] = Field(default=None, foreign_key="category.id")
     frequency: str  # Literal["daily", "weekly", "monthly", "yearly"]
-    next_due_date: date
-    last_run_date: Optional[date] = None
+    next_due_date: date_
+    last_run_date: Optional[date_] = None
     is_active: bool = True
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -37,7 +37,7 @@ class Expense(SQLModel, table=True):
     description: str
     category_id: Optional[int] = Field(default=None, foreign_key="category.id", index=True)
     merchant: Optional[str] = Field(default=None, index=True)
-    date: date = Field(index=True)
+    date: date_ = Field(index=True)
     is_recurring: bool = False
     recurring_id: Optional[int] = Field(default=None, foreign_key="recurringrule.id")
     notes: Optional[str] = None
@@ -95,7 +95,7 @@ class ExpenseCreate(SQLModel):
     description: str
     category_id: Optional[int] = None
     merchant: Optional[str] = None
-    date: date
+    date: date_
     is_recurring: bool = False
     recurring_id: Optional[int] = None
     notes: Optional[str] = None
@@ -108,7 +108,7 @@ class ExpenseRead(SQLModel):
     category_id: Optional[int]
     category: Optional[CategoryRead] = None
     merchant: Optional[str]
-    date: date
+    date: date_
     is_recurring: bool
     recurring_id: Optional[int]
     notes: Optional[str]
@@ -141,7 +141,7 @@ class RecurringRuleCreate(SQLModel):
     amount: float
     category_id: Optional[int] = None
     frequency: Literal["daily", "weekly", "monthly", "yearly"]
-    next_due_date: date
+    next_due_date: date_
     is_active: bool = True
 
 
@@ -151,8 +151,8 @@ class RecurringRuleRead(SQLModel):
     amount: float
     category_id: Optional[int]
     frequency: str
-    next_due_date: date
-    last_run_date: Optional[date]
+    next_due_date: date_
+    last_run_date: Optional[date_]
     is_active: bool
     created_at: datetime
 
