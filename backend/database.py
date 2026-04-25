@@ -19,6 +19,7 @@ if database_url.startswith("sqlite:///"):
     sqlite_path = database_url.replace("sqlite:///", "", 1)
     if not os.path.isabs(sqlite_path):
         sqlite_path = os.path.abspath(os.path.join(base_dir, sqlite_path))
+    os.makedirs(os.path.dirname(sqlite_path), exist_ok=True)
     database_url = f"sqlite:///{sqlite_path.replace(os.sep, '/')}"
 
 if database_url.startswith("sqlite"):
