@@ -74,8 +74,17 @@ interface RecurringModalProps {
   onSaved: () => void;
 }
 
+interface RecurringFormState {
+  name: string;
+  amount: string;
+  category_id: string;
+  frequency: RecurringRule["frequency"];
+  next_due_date: string;
+  is_active: boolean;
+}
+
 function RecurringModal({ rule, categories, onClose, onSaved }: RecurringModalProps) {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<RecurringFormState>({
     name: rule?.name ?? "",
     amount: rule ? String(rule.amount) : "",
     category_id: rule ? String(rule.category_id) : "",
@@ -147,7 +156,7 @@ function RecurringModal({ rule, categories, onClose, onSaved }: RecurringModalPr
               <label className="text-xs text-gray-400 mb-1 block">Frequency *</label>
               <select
                 value={form.frequency}
-                onChange={(e) => setForm({ ...form, frequency: e.target.value })}
+                onChange={(e) => setForm({ ...form, frequency: e.target.value as RecurringRule["frequency"] })}
                 className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
               >
                 <option value="daily">Daily</option>
@@ -204,12 +213,13 @@ interface InlineLimitProps {
   budgetId: number | undefined;
   categoryId: number;
   currentLimit: number;
+  currencySymbol: string;
   month: number;
   year: number;
   onSaved: () => void;
 }
 
-function InlineLimitEditor({ budgetId, categoryId, currentLimit, month, year, onSaved }: InlineLimitProps) {
+function InlineLimitEditor({ budgetId, categoryId, currentLimit, currencySymbol, month, year, onSaved }: InlineLimitProps) {
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(String(currentLimit));
   const [saving, setSaving] = useState(false);
@@ -426,6 +436,7 @@ export default function Budgets() {
                         budgetId={undefined}
                         categoryId={b.category.id}
                         currentLimit={b.monthly_limit}
+                        currencySymbol={currencySymbol}
                         month={month}
                         year={year}
                         onSaved={fetchAll}

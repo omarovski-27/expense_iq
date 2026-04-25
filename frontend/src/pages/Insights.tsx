@@ -105,19 +105,16 @@ export default function Insights() {
   }
 
   // â”€â”€ Dismiss spike â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  async function handleDismissSpike(insightId: number | undefined) {
+  async function handleDismissSpike(spike: SpikeResult) {
+    const matchingInsight = insights.find(
+      (insight) => insight.type === "spike" && insight.content === spike.explanation
+    );
+    const insightId = matchingInsight?.id;
     if (!insightId) return;
+
     await dismissInsight(insightId);
     setInsights((prev) => prev.filter((i) => i.id !== insightId));
-    setSpikes((prev) => prev.filter((_, idx) => {
-      // Remove the spike card whose matching insight was dismissed
-      return idx !== prev.findIndex((s) => {
-        const match = insights.find(
-          (i) => i.type === "spike" && i.content === s.explanation
-        );
-        return match?.id === insightId;
-      });
-    }));
+    setSpikes((prev) => prev.filter((candidate) => candidate.explanation !== spike.explanation));
     toast.success("Insight dismissed");
   }
 
