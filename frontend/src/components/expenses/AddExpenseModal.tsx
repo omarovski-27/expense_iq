@@ -54,17 +54,18 @@ export default function AddExpenseModal({ onClose, onSaved }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="bg-gray-800 rounded-xl border border-gray-700 w-full max-w-md p-6 shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="bg-gray-800 rounded-t-2xl md:rounded-xl border border-gray-700 w-full md:max-w-md p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+        <div className="w-10 h-1 bg-gray-600 rounded-full mx-auto mt-0 mb-4 md:hidden" />
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-white font-semibold text-lg">Add Expense</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">
+          <button onClick={onClose} className="text-gray-400 hover:text-white h-11 w-11 flex items-center justify-center touch-manipulation">
             <X size={18} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="text-xs text-gray-400 mb-1 block">Amount *</label>
               <input
@@ -74,7 +75,7 @@ export default function AddExpenseModal({ onClose, onSaved }: Props) {
                 required
                 value={form.amount}
                 onChange={(e) => setForm({ ...form, amount: e.target.value })}
-                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
+                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 h-11 text-white text-base focus:outline-none focus:border-amber-500"
                 placeholder="0.00"
               />
             </div>
@@ -85,7 +86,7 @@ export default function AddExpenseModal({ onClose, onSaved }: Props) {
                 required
                 value={form.date}
                 onChange={(e) => setForm({ ...form, date: e.target.value })}
-                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
+                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 h-11 text-white text-base focus:outline-none focus:border-amber-500"
               />
             </div>
           </div>
@@ -97,19 +98,19 @@ export default function AddExpenseModal({ onClose, onSaved }: Props) {
               required
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
+              className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 h-11 text-white text-base focus:outline-none focus:border-amber-500"
               placeholder="What was this for?"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="text-xs text-gray-400 mb-1 block">Category *</label>
               <select
                 required
                 value={form.category_id}
                 onChange={(e) => setForm({ ...form, category_id: e.target.value })}
-                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
+                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 h-11 text-white text-base focus:outline-none focus:border-amber-500"
               >
                 <option value="">Select...</option>
                 {categories.map((c) => (
@@ -125,7 +126,7 @@ export default function AddExpenseModal({ onClose, onSaved }: Props) {
                 type="text"
                 value={form.merchant}
                 onChange={(e) => setForm({ ...form, merchant: e.target.value })}
-                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
+                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 h-11 text-white text-base focus:outline-none focus:border-amber-500"
                 placeholder="Optional"
               />
             </div>
@@ -139,7 +140,7 @@ export default function AddExpenseModal({ onClose, onSaved }: Props) {
             <button
               type="button"
               onClick={() => setForm({ ...form, is_recurring: !form.is_recurring })}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors touch-manipulation ${
                 form.is_recurring ? "bg-amber-500" : "bg-gray-600"
               }`}
             >
@@ -157,7 +158,7 @@ export default function AddExpenseModal({ onClose, onSaved }: Props) {
               <select
                 value={form.frequency}
                 onChange={(e) => setForm({ ...form, frequency: e.target.value })}
-                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
+                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 h-11 text-white text-base focus:outline-none focus:border-amber-500"
               >
                 <option value="daily">Daily</option>
                 <option value="weekly">Weekly</option>
@@ -173,7 +174,7 @@ export default function AddExpenseModal({ onClose, onSaved }: Props) {
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
               rows={2}
-              className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500 resize-none"
+              className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-base focus:outline-none focus:border-amber-500 resize-none"
               placeholder="Optional notes"
             />
           </div>
@@ -182,14 +183,14 @@ export default function AddExpenseModal({ onClose, onSaved }: Props) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-700 text-sm transition-colors"
+              className="flex-1 px-4 h-11 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-700 text-sm transition-colors touch-manipulation"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-white font-medium text-sm transition-colors disabled:opacity-50"
+              className="flex-1 px-4 h-11 rounded-lg bg-amber-500 hover:bg-amber-400 text-white font-medium text-sm transition-colors disabled:opacity-50 touch-manipulation"
             >
               {saving ? "Saving..." : "Save"}
             </button>

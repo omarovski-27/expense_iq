@@ -111,12 +111,12 @@ export default function Dashboard() {
   // -------------------------------------------------------------------------
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-6">
 
       {/* ------------------------------------------------------------------ */}
       {/* SECTION 1 â€” KPI Row                                                 */}
       {/* ------------------------------------------------------------------ */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {loading ? (
           Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
         ) : (
@@ -193,7 +193,7 @@ export default function Dashboard() {
       {/* ------------------------------------------------------------------ */}
       {/* SECTION 2 â€” Charts (60/40)                                          */}
       {/* ------------------------------------------------------------------ */}
-      <div className="flex gap-4">
+      <div className="flex flex-col md:flex-row gap-4">
         {loading ? (
           <>
             <SkeletonBlock className="flex-[3] h-72" />
@@ -201,10 +201,10 @@ export default function Dashboard() {
           </>
         ) : (
           <>
-            <div className="flex-[3] bg-gray-800 rounded-xl p-5 border border-gray-700">
+            <div className="md:flex-[3] bg-gray-800 rounded-xl p-5 border border-gray-700 min-w-0">
               <SpendingTrendChart data={trends} />
             </div>
-            <div className="flex-[2] bg-gray-800 rounded-xl p-5 border border-gray-700">
+            <div className="md:flex-[2] bg-gray-800 rounded-xl p-5 border border-gray-700 min-w-0">
               <CategoryDonutChart data={breakdown} />
             </div>
           </>
@@ -228,9 +228,9 @@ export default function Dashboard() {
       {/* ------------------------------------------------------------------ */}
       {/* SECTION 4 â€” Recent Transactions (60%) + Insights (40%)             */}
       {/* ------------------------------------------------------------------ */}
-      <div className="flex gap-4">
+      <div className="flex flex-col md:flex-row gap-4">
         {/* Recent Transactions */}
-        <div className="flex-[3] bg-gray-800 rounded-xl p-5 border border-gray-700">
+        <div className="md:flex-[3] bg-gray-800 rounded-xl p-5 border border-gray-700 min-w-0">
           <h2 className="text-sm font-semibold text-gray-300 mb-4">
             Recent Transactions
           </h2>
@@ -250,7 +250,7 @@ export default function Dashboard() {
               <p className="text-gray-400 text-sm mb-4">Add your first expense to get started</p>
               <button
                 onClick={() => setShowAddModal(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black text-sm font-semibold rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 h-11 bg-amber-500 hover:bg-amber-400 text-black text-sm font-semibold rounded-lg transition-colors touch-manipulation"
               >
                 <Plus size={16} /> Add Expense
               </button>
