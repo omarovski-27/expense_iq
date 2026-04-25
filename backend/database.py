@@ -12,7 +12,10 @@ database_url = os.getenv("DATABASE_URL", "sqlite:///../data/expenses.db")
 if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
 
-if not database_url.startswith(("sqlite", "postgresql://")):
+if "postgresql://" in database_url and "pg8000" not in database_url:
+    database_url = database_url.replace("postgresql://", "postgresql+pg8000://", 1)
+
+if not database_url.startswith(("sqlite", "postgresql://", "postgresql+pg8000://")):
     database_url = f"sqlite:///{database_url}"
 
 if database_url.startswith("sqlite:///"):
