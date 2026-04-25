@@ -1,4 +1,4 @@
-# 💰 ExpenseIQ
+# ExpenseIQ
 
 > A powerful, AI-driven personal expense tracker
 
@@ -9,24 +9,20 @@
 [![SQLite](https://img.shields.io/badge/SQLite-3-003B57?style=flat&logo=sqlite&logoColor=white)](https://sqlite.org)
 [![Claude AI](https://img.shields.io/badge/Powered%20by-Claude%20AI-CC785C?style=flat&logo=anthropic&logoColor=white)](https://anthropic.com)
 
----
+## Features
 
-## ✨ Features
+1. **Dashboard** — KPI cards (total spend, budget used %, daily average, top category), 6-month spending trend chart, category donut breakdown, and live AI insight cards
+2. **Expense Tracking** — Full CRUD with sortable/paginated table, category badges, recurring indicators, bulk CSV import, and inline delete confirmation
+3. **AI Insights** — Monthly narrative reports, spending spike detection (warning/critical), actionable recommendations, and a conversational AI chat powered by Claude
+4. **Analytics** — Spending trends over 6 months, per-category breakdowns, top merchant table, and month-over-month comparisons
+5. **Budget Management** — Per-category monthly budgets with circular progress rings, inline limit editing, projected month-end spend, and status badges
+6. **Recurring Expenses** — Rule-based recurring engine (daily/weekly/monthly/yearly) with auto-creation on startup, active toggle, and manual run trigger
+7. **Exports** — Download filtered expenses as CSV or a styled 3-sheet Excel report (Transactions, Summary, Overview)
+8. **Settings** — Category manager (add/edit/delete with expense reassignment), CSV import, data export, currency symbol preference, date format toggle
+9. **Keyboard Shortcuts** — `n` to add expense, `/` to focus search, `Esc` to close modals
+10. **Responsive Sidebar** — Collapses to icon-only at < 768px with hover tooltips
 
-- 📊 **Dashboard** — KPI cards (total spend, budget used %, daily average, top category), 6-month spending trend chart, category donut breakdown, and live AI insight cards
-- 💸 **Expense Tracking** — Full CRUD with sortable/paginated table, category badges, recurring indicators, bulk CSV import, and inline delete confirmation
-- 🤖 **AI Insights** — Monthly narrative reports, spending spike detection (warning/critical), actionable recommendations, and a conversational AI chat powered by Claude
-- 📈 **Analytics** — Spending trends over 6 months, per-category breakdowns, top merchant table, and month-over-month comparisons
-- 💼 **Budget Management** — Per-category monthly budgets with circular progress rings, inline limit editing, projected month-end spend, and status badges
-- 🔁 **Recurring Expenses** — Rule-based recurring engine (daily/weekly/monthly/yearly) with auto-creation on startup, active toggle, and manual run trigger
-- 📤 **Exports** — Download filtered expenses as CSV or a styled 3-sheet Excel report (Transactions, Summary, Overview)
-- ⚙️ **Settings** — Category manager (add/edit/delete with expense reassignment), CSV import, data export, currency symbol preference, date format toggle
-- ⌨️ **Keyboard Shortcuts** — `n` to add expense, `/` to focus search, `Esc` to close modals
-- 📱 **Responsive Sidebar** — Collapses to icon-only at < 768px with hover tooltips
-
----
-
-## 🛠 Tech Stack
+## Tech Stack
 
 ### Backend
 
@@ -57,16 +53,14 @@
 | date-fns | 3.6.0 | Date utilities |
 | lucide-react | 0.379.0 | Icon set |
 
----
-
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
-- Python 3.11+
-- Node.js 18+
-- Git
-- An [Anthropic API key](https://console.anthropic.com)
+1. Python 3.11+
+2. Node.js 18+
+3. Git
+4. An [Anthropic API key](https://console.anthropic.com)
 
 ### Backend Setup
 
@@ -84,10 +78,7 @@ pip install -r requirements.txt
 cd expense-tracker/frontend
 npm install
 ```
-
----
-
-## ▶️ Running the App
+## Running the App
 
 Open **two terminals** from the project root:
 
@@ -106,9 +97,7 @@ npm run dev
 
 Then open **http://localhost:5173** in your browser.
 
----
-
-## 🔑 Environment Variables
+## Environment Variables
 
 Create a `.env` file at the project root (`expense-tracker/.env`):
 
@@ -122,11 +111,9 @@ ANTHROPIC_API_KEY=your_key_here
 DATABASE_URL=../data/expenses.db
 ```
 
-> ⚠️ The `.env` file is gitignored. Never commit your API key.
+> The `.env` file is gitignored. Never commit your API key.
 
----
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 expense-tracker/
@@ -172,16 +159,13 @@ expense-tracker/
 ├── .gitignore
 └── README.md
 ```
-
----
-
-## 📖 API Documentation
+## API Documentation
 
 FastAPI generates interactive docs automatically. With the backend running, visit:
 
-- **Swagger UI** → http://localhost:8000/docs
-- **ReDoc** → http://localhost:8000/redoc
-- **Health check** → http://localhost:8000/health
+1. **Swagger UI** → http://localhost:8000/docs
+2. **ReDoc** → http://localhost:8000/redoc
+3. **Health check** → http://localhost:8000/health
 
 ### Key Endpoints
 
@@ -198,12 +182,8 @@ FastAPI generates interactive docs automatically. With the backend running, visi
 | `GET` | `/api/exports/excel` | Download Excel report |
 | `POST` | `/api/recurring/run` | Trigger recurring expenses |
 
----
-
-## 📄 License
+## License
 
 MIT — see [LICENSE](LICENSE) for details.
-
----
 
 *Built with React, FastAPI, SQLite, and Claude AI · ExpenseIQ v1.0.0*
