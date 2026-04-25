@@ -66,18 +66,18 @@ function EditRow({ category, onSave, onCancel }: EditRowProps) {
   }
 
   return (
-    <div className="flex items-center gap-3 py-2 px-3 bg-gray-700 rounded-lg">
+    <div className="flex flex-col sm:flex-row sm:items-center gap-3 py-3 px-3 bg-gray-700 rounded-lg">
       <input
         type="color"
         value={color}
         onChange={(e) => setColor(e.target.value)}
-        className="w-8 h-8 rounded cursor-pointer border-0 bg-transparent"
+        className="w-10 h-10 rounded cursor-pointer border-0 bg-transparent"
         title="Category color"
       />
       <input
         value={icon}
         onChange={(e) => setIcon(e.target.value)}
-        className="w-12 text-center bg-gray-600 border border-gray-500 rounded px-1 py-1 text-white text-lg"
+        className="w-full sm:w-14 text-center bg-gray-600 border border-gray-500 rounded px-1 h-11 text-white text-lg"
         maxLength={2}
         placeholder="ðŸ·"
       />
@@ -85,24 +85,26 @@ function EditRow({ category, onSave, onCancel }: EditRowProps) {
         value={name}
         onChange={(e) => setName(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && handleSave()}
-        className="flex-1 bg-gray-600 border border-gray-500 rounded px-3 py-1 text-white text-sm focus:outline-none focus:border-amber-500"
+        className="flex-1 bg-gray-600 border border-gray-500 rounded px-3 h-11 text-white text-base focus:outline-none focus:border-amber-500"
         placeholder="Category name"
       />
-      <button
-        onClick={handleSave}
-        disabled={saving}
-        className="p-1.5 text-green-400 hover:text-green-300 hover:bg-green-400/10 rounded"
-        title="Save"
-      >
-        <Check size={16} />
-      </button>
-      <button
-        onClick={onCancel}
-        className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-600 rounded"
-        title="Cancel"
-      >
-        <X size={16} />
-      </button>
+      <div className="flex items-center gap-2 sm:ml-auto">
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="h-10 px-3 text-green-400 hover:text-green-300 hover:bg-green-400/10 rounded touch-manipulation"
+          title="Save"
+        >
+          <Check size={16} />
+        </button>
+        <button
+          onClick={onCancel}
+          className="h-10 px-3 text-gray-400 hover:text-white hover:bg-gray-600 rounded touch-manipulation"
+          title="Cancel"
+        >
+          <X size={16} />
+        </button>
+      </div>
     </div>
   );
 }
@@ -245,10 +247,10 @@ export default function Settings() {
   const sectionTitleClass = "flex items-center gap-2 text-lg font-semibold text-white mb-5";
   const labelClass = "text-sm text-gray-400 mb-1";
   const inputClass =
-    "bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500 w-full";
+    "bg-gray-700 border border-gray-600 rounded-lg px-3 h-11 text-white text-base focus:outline-none focus:border-amber-500 w-full";
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
+    <div className="p-4 md:p-6 max-w-3xl mx-auto pb-24 md:pb-6">
       <h1 className="text-2xl font-bold text-white mb-6">Settings</h1>
 
       {/* â”€â”€ SECTION 1: Category Manager â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
@@ -269,7 +271,7 @@ export default function Settings() {
                 />
               ) : deletingId === cat.id ? (
                 /* delete confirmation row */
-                <div className="flex items-center gap-3 py-2 px-3 bg-red-900/20 border border-red-700/50 rounded-lg">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 py-3 px-3 bg-red-900/20 border border-red-700/50 rounded-lg">
                   <span className="text-sm text-red-300 flex-1">
                     Delete <strong>{cat.name}</strong>?
                   </span>
@@ -278,7 +280,7 @@ export default function Settings() {
                     onChange={(e) =>
                       setReassignTo(e.target.value === "" ? "" : Number(e.target.value))
                     }
-                    className="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-amber-500"
+                    className="w-full sm:w-auto bg-gray-700 border border-gray-600 rounded px-3 h-11 text-base text-white focus:outline-none focus:border-amber-500"
                     title="Reassign expenses to"
                   >
                     <option value="">Reassign expenses toâ€¦</option>
@@ -292,13 +294,13 @@ export default function Settings() {
                   </select>
                   <button
                     onClick={confirmDelete}
-                    className="px-3 py-1 bg-red-600 hover:bg-red-500 text-white text-xs rounded font-medium"
+                    className="px-3 h-11 bg-red-600 hover:bg-red-500 text-white text-sm rounded font-medium touch-manipulation"
                   >
                     Delete
                   </button>
                   <button
                     onClick={() => setDeletingId(null)}
-                    className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded"
+                    className="h-11 w-11 text-gray-400 hover:text-white hover:bg-gray-700 rounded touch-manipulation"
                   >
                     <X size={14} />
                   </button>
@@ -314,14 +316,14 @@ export default function Settings() {
                   <span className="flex-1 text-sm text-white">{cat.name}</span>
                   <button
                     onClick={() => setEditingId(cat.id)}
-                    className="p-1.5 text-gray-500 hover:text-amber-400 hover:bg-amber-400/10 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="p-2 text-gray-500 hover:text-amber-400 hover:bg-amber-400/10 rounded opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity touch-manipulation"
                     title="Edit"
                   >
                     <Edit2 size={14} />
                   </button>
                   <button
                     onClick={() => startDelete(cat.id)}
-                    className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity touch-manipulation"
                     title="Delete"
                   >
                     <Trash2 size={14} />
@@ -335,18 +337,18 @@ export default function Settings() {
         {/* Add Category form */}
         <div className="border-t border-gray-700 pt-5">
           <p className="text-sm font-medium text-gray-300 mb-3">Add Category</p>
-          <div className="flex items-end gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-end gap-3">
             <div>
               <p className={labelClass}>Color</p>
               <input
                 type="color"
                 value={newColor}
                 onChange={(e) => setNewColor(e.target.value)}
-                className="w-10 h-9 rounded cursor-pointer border border-gray-600 bg-transparent"
+                className="w-full sm:w-10 h-11 rounded cursor-pointer border border-gray-600 bg-transparent"
                 title="Pick a color"
               />
             </div>
-            <div className="w-20">
+            <div className="w-full sm:w-20">
               <p className={labelClass}>Emoji</p>
               <input
                 value={newIcon}
@@ -369,7 +371,7 @@ export default function Settings() {
             <button
               onClick={handleAddCategory}
               disabled={addingCat}
-              className="flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black text-sm font-semibold rounded-lg transition-colors"
+              className="flex items-center justify-center gap-1.5 px-4 h-11 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black text-sm font-semibold rounded-lg transition-colors touch-manipulation"
             >
               <Plus size={16} />
               Add
@@ -388,7 +390,7 @@ export default function Settings() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
           <button
             onClick={handleExportCSV}
-            className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded-lg border border-gray-600 transition-colors"
+            className="flex items-center justify-center gap-2 px-4 h-11 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded-lg border border-gray-600 transition-colors touch-manipulation"
           >
             <Download size={16} className="text-green-400" />
             Export All Data (CSV)
@@ -396,7 +398,7 @@ export default function Settings() {
 
           <button
             onClick={handleExportExcel}
-            className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded-lg border border-gray-600 transition-colors"
+            className="flex items-center justify-center gap-2 px-4 h-11 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded-lg border border-gray-600 transition-colors touch-manipulation"
           >
             <Download size={16} className="text-blue-400" />
             Export Excel Report
@@ -404,7 +406,7 @@ export default function Settings() {
 
           <button
             onClick={() => importRef.current?.click()}
-            className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded-lg border border-gray-600 transition-colors"
+            className="flex items-center justify-center gap-2 px-4 h-11 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded-lg border border-gray-600 transition-colors touch-manipulation"
           >
             <Upload size={16} className="text-amber-400" />
             Import CSV
@@ -440,12 +442,12 @@ export default function Settings() {
           {/* Currency symbol */}
           <div>
             <p className={labelClass}>Currency Symbol</p>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <input
                 value={currency}
                 onChange={(e) => saveCurrency(e.target.value)}
                 maxLength={3}
-                className="w-20 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm text-center focus:outline-none focus:border-amber-500"
+                className="w-full sm:w-20 bg-gray-700 border border-gray-600 rounded-lg px-3 h-11 text-white text-base text-center focus:outline-none focus:border-amber-500"
                 placeholder="$"
               />
               <span className="text-xs text-gray-500 self-center">
@@ -457,12 +459,12 @@ export default function Settings() {
           {/* Date format toggle */}
           <div>
             <p className={labelClass}>Date Format</p>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               {(["MM/DD/YYYY", "DD/MM/YYYY"] as const).map((fmt) => (
                 <button
                   key={fmt}
                   onClick={() => saveDateFormat(fmt)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                  className={`px-4 h-11 rounded-lg text-sm font-medium border transition-colors touch-manipulation ${
                     dateFormat === fmt
                       ? "bg-amber-500 border-amber-500 text-black"
                       : "bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600"

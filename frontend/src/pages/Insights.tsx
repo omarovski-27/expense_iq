@@ -157,12 +157,12 @@ export default function Insights() {
     <div className="space-y-6 pb-10">
 
       {/* â”€â”€ SECTION 1: Top bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
           <button
             onClick={handleGenerate}
             disabled={isGenerating}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-white font-medium text-sm transition-colors disabled:opacity-60"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto px-4 h-11 rounded-lg bg-amber-500 hover:bg-amber-400 text-white font-medium text-sm transition-colors disabled:opacity-60 touch-manipulation"
           >
             {isGenerating
               ? <Loader2 size={16} className="animate-spin" />
@@ -211,7 +211,7 @@ export default function Insights() {
             Spending Spikes
             <span className="ml-2 text-xs text-gray-500 font-normal">Categories above average</span>
           </h2>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {spikes.map((spike, idx) => (
               <div
                 key={idx}
@@ -234,7 +234,7 @@ export default function Insights() {
                   </div>
                   <button
                     onClick={() => handleDismissSpike(spike)}
-                    className="text-gray-600 hover:text-gray-400 transition-colors ml-2 mt-0.5"
+                    className="text-gray-600 hover:text-gray-400 transition-colors ml-2 mt-0.5 touch-manipulation"
                     title="Dismiss"
                   >
                     <X size={14} />
@@ -258,7 +258,20 @@ export default function Insights() {
             <h2 className="text-white font-semibold">Top Merchants</h2>
             <p className="text-xs text-gray-500 mt-0.5">Where you spend the most this month</p>
           </div>
-          <table className="w-full text-sm">
+          <div className="md:hidden divide-y divide-gray-700/60">
+            {merchants.slice(0, 10).map((m, idx) => (
+              <div key={m.merchant} className="px-5 py-4 flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-gray-500 text-xs font-mono mb-1">#{idx + 1}</p>
+                  <p className="text-white font-medium truncate">{m.merchant || "Unknown"}</p>
+                  <p className="text-sm text-gray-400 mt-1">{m.count} transaction{m.count !== 1 ? "s" : ""}</p>
+                </div>
+                <p className="text-amber-400 font-medium whitespace-nowrap">{formatCurrency(m.amount, currencySymbol)}</p>
+              </div>
+            ))}
+          </div>
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-sm">
             <thead>
               <tr className="text-gray-500 text-xs uppercase tracking-wide border-b border-gray-700">
                 <th className="px-5 py-3 text-left w-12">Rank</th>
@@ -278,6 +291,7 @@ export default function Insights() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
@@ -285,7 +299,7 @@ export default function Insights() {
       {recommendations.length > 0 && (
         <div>
           <h2 className="text-white font-semibold mb-3">Recommendations</h2>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {recommendations.map((ins) => {
               // Try to parse estimated_savings from content (e.g. "save $50")
               const savingsMatch = ins.content.match(/\$(\d[\d,.]*)/);
@@ -303,7 +317,7 @@ export default function Insights() {
                     </div>
                     <button
                       onClick={() => handleDismissInsight(ins.id)}
-                      className="text-gray-600 hover:text-gray-400 transition-colors ml-2"
+                      className="text-gray-600 hover:text-gray-400 transition-colors ml-2 touch-manipulation"
                       title="Dismiss"
                     >
                       <X size={14} />
@@ -341,7 +355,7 @@ export default function Insights() {
                   <button
                     key={prompt}
                     onClick={() => handleSend(prompt)}
-                    className="text-xs px-3 py-1.5 rounded-full bg-gray-700 hover:bg-gray-600 text-gray-300 border border-gray-600 transition-colors"
+                    className="text-xs px-3 h-10 rounded-full bg-gray-700 hover:bg-gray-600 text-gray-300 border border-gray-600 transition-colors touch-manipulation"
                   >
                     {prompt}
                   </button>
@@ -356,7 +370,7 @@ export default function Insights() {
                   className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
+                    className={`max-w-[85%] md:max-w-[75%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
                       msg.role === "user"
                         ? "bg-amber-500 text-white rounded-br-sm"
                         : "bg-gray-700 text-gray-200 rounded-bl-sm"
@@ -383,7 +397,7 @@ export default function Insights() {
         </div>
 
         {/* Input bar */}
-        <div className="px-5 py-4 border-t border-gray-700 flex gap-3">
+        <div className="px-5 py-4 border-t border-gray-700 flex flex-col sm:flex-row gap-3">
           <input
             type="text"
             value={chatInput}
@@ -391,12 +405,12 @@ export default function Insights() {
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
             placeholder="Ask about your spendingâ€¦"
             disabled={isChatLoading}
-            className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-amber-500 disabled:opacity-50"
+            className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-4 h-11 text-white text-base placeholder-gray-500 focus:outline-none focus:border-amber-500 disabled:opacity-50"
           />
           <button
             onClick={() => handleSend()}
             disabled={isChatLoading || !chatInput.trim()}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-white text-sm font-medium transition-colors disabled:opacity-50"
+            className="flex items-center justify-center gap-1.5 px-4 h-11 rounded-lg bg-amber-500 hover:bg-amber-400 text-white text-sm font-medium transition-colors disabled:opacity-50 touch-manipulation"
           >
             {isChatLoading ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
             Send

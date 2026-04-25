@@ -320,7 +320,7 @@ export default function Dashboard() {
       {/* ------------------------------------------------------------------ */}
       <button
         onClick={() => setShowAddModal(true)}
-        className="fixed bottom-8 right-8 w-14 h-14 bg-amber-500 hover:bg-amber-400 text-white rounded-full shadow-lg flex items-center justify-center transition-colors z-50"
+        className="fixed bottom-24 right-4 md:bottom-8 md:right-8 w-14 h-14 bg-amber-500 hover:bg-amber-400 text-white rounded-full shadow-lg flex items-center justify-center transition-colors touch-manipulation z-40"
         aria-label="Add expense"
       >
         <Plus size={24} />

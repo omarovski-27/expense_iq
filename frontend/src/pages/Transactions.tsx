@@ -206,12 +206,12 @@ export default function Transactions() {
     <div className="space-y-4 pb-8">
 
       {/* â”€â”€ Filter Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <div className="bg-gray-800 rounded-xl p-4 border border-gray-700 flex flex-wrap items-center gap-3">
+      <div className="bg-gray-800 rounded-xl p-4 border border-gray-700 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
         {/* Month */}
         <select
           value={filterMonth}
           onChange={(e) => setFilterMonth(Number(e.target.value))}
-          className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500"
+          className="w-full sm:w-auto bg-gray-700 border border-gray-600 text-white text-base rounded-lg px-3 h-11 focus:outline-none focus:border-amber-500"
         >
           <option value={0}>All months</option>
           {MONTHS.map((m, i) => (
@@ -223,7 +223,7 @@ export default function Transactions() {
         <select
           value={filterYear}
           onChange={(e) => setFilterYear(Number(e.target.value))}
-          className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500"
+          className="w-full sm:w-auto bg-gray-700 border border-gray-600 text-white text-base rounded-lg px-3 h-11 focus:outline-none focus:border-amber-500"
         >
           {years.map((y) => <option key={y} value={y}>{y}</option>)}
         </select>
@@ -232,7 +232,7 @@ export default function Transactions() {
         <select
           value={filterCategory}
           onChange={(e) => setFilterCategory(e.target.value)}
-          className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500"
+          className="w-full sm:w-auto bg-gray-700 border border-gray-600 text-white text-base rounded-lg px-3 h-11 focus:outline-none focus:border-amber-500"
         >
           <option value="">All categories</option>
           {categories.map((c) => (
@@ -248,35 +248,35 @@ export default function Transactions() {
           placeholder="Search description or merchant…"
           value={searchInput}
           onChange={(e) => handleSearchChange(e.target.value)}
-          className="flex-1 min-w-[200px] bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500 placeholder-gray-500"
+          className="w-full sm:flex-1 sm:min-w-[200px] bg-gray-700 border border-gray-600 text-white text-base rounded-lg px-3 h-11 focus:outline-none focus:border-amber-500 placeholder-gray-500"
         />
 
         {/* Clear */}
         <button
           onClick={clearFilters}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-600 text-gray-400 hover:text-white hover:bg-gray-700 text-sm transition-colors"
+          className="flex items-center justify-center gap-1.5 w-full sm:w-auto px-3 h-11 rounded-lg border border-gray-600 text-gray-400 hover:text-white hover:bg-gray-700 text-sm transition-colors touch-manipulation"
         >
           <X size={14} /> Clear
         </button>
 
         {/* Count */}
-        <span className="text-xs text-gray-500 ml-auto">
+        <span className="text-xs text-gray-500 sm:ml-auto w-full sm:w-auto text-left sm:text-right">
           Showing {expenses.length} expense{expenses.length !== 1 ? "s" : ""}
         </span>
       </div>
 
       {/* â”€â”€ Action Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="grid grid-cols-1 sm:flex sm:flex-wrap items-stretch sm:items-center gap-2">
         <button
           onClick={() => setShowAdd(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-white text-sm font-medium transition-colors"
+          className="flex items-center justify-center gap-2 px-4 h-11 rounded-lg bg-amber-500 hover:bg-amber-400 text-white text-sm font-medium transition-colors touch-manipulation"
         >
           <Plus size={16} /> Add Expense
         </button>
 
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-700 text-sm transition-colors"
+          className="flex items-center justify-center gap-2 px-4 h-11 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-700 text-sm transition-colors touch-manipulation"
         >
           <Upload size={16} /> Import CSV
         </button>
@@ -290,21 +290,123 @@ export default function Transactions() {
 
         <button
           onClick={() => window.open(exportUrl("csv"), "_blank")}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-700 text-sm transition-colors"
+          className="flex items-center justify-center gap-2 px-4 h-11 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-700 text-sm transition-colors touch-manipulation"
         >
           <Download size={16} /> Export CSV
         </button>
 
         <button
           onClick={() => window.open(exportUrl("excel"), "_blank")}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-700 text-sm transition-colors"
+          className="flex items-center justify-center gap-2 px-4 h-11 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-700 text-sm transition-colors touch-manipulation"
         >
           <FileSpreadsheet size={16} /> Export Excel
         </button>
       </div>
 
+      <div className="md:hidden space-y-3">
+        {loading ? (
+          Array.from({ length: 6 }).map((_, index) => (
+            <div
+              key={index}
+              className="bg-gray-800 rounded-xl border border-gray-700 p-4 space-y-3"
+            >
+              <div className="h-5 w-1/2 bg-gray-700 rounded animate-pulse" />
+              <div className="h-4 w-1/3 bg-gray-700 rounded animate-pulse" />
+              <div className="h-4 w-1/4 bg-gray-700 rounded animate-pulse" />
+            </div>
+          ))
+        ) : paginated.length === 0 ? (
+          <div className="bg-gray-800 rounded-xl border border-gray-700 px-4 py-16 text-center">
+            <p className="text-4xl mb-3">ðŸ“­</p>
+            <p className="text-white font-semibold mb-1">No expenses found</p>
+            <p className="text-gray-500 text-sm">Try adjusting your filters or add a new expense</p>
+          </div>
+        ) : (
+          paginated.map((exp) => (
+            <div key={exp.id} className="space-y-2">
+              <div className="bg-gray-800 rounded-xl p-4 border border-gray-700 flex justify-between items-start gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-white font-medium truncate">{exp.merchant || exp.description}</p>
+                  {exp.merchant && (
+                    <p className="text-sm text-gray-400 mt-1 truncate">{exp.description}</p>
+                  )}
+                  <div className="flex flex-wrap items-center gap-2 mt-3 text-sm text-gray-400">
+                    {exp.category ? (
+                      <span
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
+                        style={{
+                          backgroundColor: exp.category.color + "22",
+                          color: exp.category.color,
+                        }}
+                      >
+                        {exp.category.icon} {exp.category.name}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-gray-500">No category</span>
+                    )}
+                    <span>{format(parseISO(exp.date), "MMM d, yyyy")}</span>
+                    {exp.is_recurring && (
+                      <span className="inline-flex items-center gap-1 text-amber-400 text-xs">
+                        <RefreshCw size={12} /> Recurring
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-3 flex-shrink-0">
+                  <p className="text-amber-400 font-bold text-base whitespace-nowrap">
+                    {formatCurrency(exp.amount, currencySymbol)}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setEditExpense(exp)}
+                      className="h-10 w-10 rounded-lg border border-gray-700 text-gray-400 hover:text-amber-400 hover:bg-gray-700/60 transition-colors touch-manipulation flex items-center justify-center"
+                      title="Edit"
+                      aria-label={`Edit ${exp.description}`}
+                    >
+                      <Pencil size={16} />
+                    </button>
+                    <button
+                      onClick={() =>
+                        setPendingDelete(pendingDelete === exp.id ? null : exp.id)
+                      }
+                      className="h-10 w-10 rounded-lg border border-gray-700 text-gray-400 hover:text-red-400 hover:bg-gray-700/60 transition-colors touch-manipulation flex items-center justify-center"
+                      title="Delete"
+                      aria-label={`Delete ${exp.description}`}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {pendingDelete === exp.id && (
+                <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 flex items-start justify-between gap-3">
+                  <span className="text-red-300 text-sm">
+                    Delete <strong>{exp.description}</strong>?
+                  </span>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <button
+                      onClick={() => setPendingDelete(null)}
+                      className="px-3 h-9 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-700 text-xs touch-manipulation"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => handleDelete(exp.id)}
+                      className="px-3 h-9 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-medium touch-manipulation"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+
       {/* â”€â”€ Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-x-auto">
+      <div className="hidden md:block bg-gray-800 rounded-xl border border-gray-700 overflow-x-auto">
         <table className="w-full min-w-[900px] text-sm">
           <thead>
             <tr className="border-b border-gray-700 text-gray-400 text-xs uppercase tracking-wide">

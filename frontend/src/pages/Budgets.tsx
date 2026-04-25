@@ -124,13 +124,14 @@ function RecurringModal({ rule, categories, onClose, onSaved }: RecurringModalPr
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="bg-gray-800 rounded-xl border border-gray-700 w-full max-w-md p-6 shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="bg-gray-800 rounded-t-2xl md:rounded-xl border border-gray-700 w-full md:max-w-md p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+        <div className="w-10 h-1 bg-gray-600 rounded-full mx-auto mt-0 mb-4 md:hidden" />
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-white font-semibold text-lg">
             {rule ? "Edit" : "Add"} Recurring Expense
           </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white"><X size={18} /></button>
+          <button onClick={onClose} className="text-gray-400 hover:text-white h-11 w-11 flex items-center justify-center touch-manipulation"><X size={18} /></button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -138,17 +139,17 @@ function RecurringModal({ rule, categories, onClose, onSaved }: RecurringModalPr
             <input
               type="text" required value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
+              className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 h-11 text-white text-base focus:outline-none focus:border-amber-500"
               placeholder="e.g. Netflix Subscription"
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="text-xs text-gray-400 mb-1 block">Amount *</label>
               <input
                 type="number" step="0.01" min="0.01" required value={form.amount}
                 onChange={(e) => setForm({ ...form, amount: e.target.value })}
-                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
+                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 h-11 text-white text-base focus:outline-none focus:border-amber-500"
                 placeholder="0.00"
               />
             </div>
@@ -157,7 +158,7 @@ function RecurringModal({ rule, categories, onClose, onSaved }: RecurringModalPr
               <select
                 value={form.frequency}
                 onChange={(e) => setForm({ ...form, frequency: e.target.value as RecurringRule["frequency"] })}
-                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
+                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 h-11 text-white text-base focus:outline-none focus:border-amber-500"
               >
                 <option value="daily">Daily</option>
                 <option value="weekly">Weekly</option>
@@ -166,13 +167,13 @@ function RecurringModal({ rule, categories, onClose, onSaved }: RecurringModalPr
               </select>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="text-xs text-gray-400 mb-1 block">Category *</label>
               <select
                 required value={form.category_id}
                 onChange={(e) => setForm({ ...form, category_id: e.target.value })}
-                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
+                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 h-11 text-white text-base focus:outline-none focus:border-amber-500"
               >
                 <option value="">Select…</option>
                 {categories.map((c) => (
@@ -185,17 +186,17 @@ function RecurringModal({ rule, categories, onClose, onSaved }: RecurringModalPr
               <input
                 type="date" required value={form.next_due_date}
                 onChange={(e) => setForm({ ...form, next_due_date: e.target.value })}
-                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
+                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 h-11 text-white text-base focus:outline-none focus:border-amber-500"
               />
             </div>
           </div>
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose}
-              className="flex-1 px-4 py-2 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-700 text-sm transition-colors">
+              className="flex-1 px-4 h-11 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-700 text-sm transition-colors touch-manipulation">
               Cancel
             </button>
             <button type="submit" disabled={saving}
-              className="flex-1 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-white font-medium text-sm transition-colors disabled:opacity-50">
+              className="flex-1 px-4 h-11 rounded-lg bg-amber-500 hover:bg-amber-400 text-white font-medium text-sm transition-colors disabled:opacity-50 touch-manipulation">
               {saving ? "Saving…" : rule ? "Save Changes" : "Add Rule"}
             </button>
           </div>
@@ -260,13 +261,13 @@ function InlineLimitEditor({ budgetId, categoryId, currentLimit, currencySymbol,
         type="number" step="0.01" min="1" value={value} autoFocus
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") setEditing(false); }}
-        className="w-24 bg-gray-700 border border-amber-500 rounded px-2 py-1 text-white text-sm focus:outline-none"
+        className="w-24 bg-gray-700 border border-amber-500 rounded px-2 h-9 text-white text-sm focus:outline-none"
       />
       <button onClick={save} disabled={saving}
-        className="text-xs px-2 py-1 bg-amber-500 hover:bg-amber-400 text-white rounded transition-colors disabled:opacity-50">
+        className="text-xs px-2 h-9 bg-amber-500 hover:bg-amber-400 text-white rounded transition-colors disabled:opacity-50 touch-manipulation">
         {saving ? "â€¦" : "âœ“"}
       </button>
-      <button onClick={() => setEditing(false)} className="text-xs text-gray-500 hover:text-white">âœ•</button>
+      <button onClick={() => setEditing(false)} className="text-xs h-9 px-2 text-gray-500 hover:text-white touch-manipulation">âœ•</button>
     </div>
   );
 }
@@ -372,18 +373,18 @@ export default function Budgets() {
     <div className="space-y-6 pb-8">
 
       {/* â”€â”€ Month/Year selector â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         <select
           value={month}
           onChange={(e) => setMonth(Number(e.target.value))}
-          className="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500"
+          className="w-full sm:w-auto bg-gray-800 border border-gray-700 text-white text-base rounded-lg px-3 h-11 focus:outline-none focus:border-amber-500"
         >
           {MONTHS.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
         </select>
         <select
           value={year}
           onChange={(e) => setYear(Number(e.target.value))}
-          className="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500"
+          className="w-full sm:w-auto bg-gray-800 border border-gray-700 text-white text-base rounded-lg px-3 h-11 focus:outline-none focus:border-amber-500"
         >
           {years.map((y) => <option key={y} value={y}>{y}</option>)}
         </select>
@@ -392,7 +393,7 @@ export default function Budgets() {
 
       {/* â”€â”€ Budget Status Grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {loading ? (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="h-44 bg-gray-800 rounded-xl animate-pulse border border-gray-700" />
           ))}
@@ -404,7 +405,7 @@ export default function Budgets() {
           <p className="text-gray-500 text-sm">Add a budget below to start tracking your spending.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {budgetStatus.map((b) => {
             const style = STATUS_STYLES[b.status];
             return (
@@ -427,7 +428,7 @@ export default function Budgets() {
                 </div>
 
                 {/* Ring + amounts */}
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                   <CircularProgress pct={b.percentage} color={style.ring} />
                   <div className="flex-1 space-y-1">
                     <div>
@@ -450,7 +451,7 @@ export default function Budgets() {
                 </div>
 
                 {/* Footer */}
-                <div className="mt-4 pt-3 border-t border-gray-700 flex justify-between text-xs text-gray-500">
+                <div className="mt-4 pt-3 border-t border-gray-700 flex flex-col sm:flex-row sm:justify-between gap-1 text-xs text-gray-500">
                   <span>Projected: <span className="text-gray-300">{formatCurrency(b.projected_month_end, currencySymbol)}</span></span>
                   <span>
                     {b.remaining >= 0
@@ -471,14 +472,14 @@ export default function Budgets() {
             <Plus size={16} className="text-amber-400" />
             Add / Update Budget
           </h2>
-          <form onSubmit={handleAddBudget} className="flex flex-wrap items-end gap-3">
-            <div>
+          <form onSubmit={handleAddBudget} className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-end gap-3">
+            <div className="w-full sm:w-auto">
               <p className="text-xs text-gray-400 mb-1">Category *</p>
               <select
                 required
                 value={newBudgetCategoryId}
                 onChange={(e) => setNewBudgetCategoryId(e.target.value)}
-                className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500 min-w-[160px]"
+                className="w-full sm:min-w-[160px] bg-gray-700 border border-gray-600 text-white text-base rounded-lg px-3 h-11 focus:outline-none focus:border-amber-500"
               >
                 <option value="">Select category...</option>
                 {categories.map((c) => (
@@ -486,7 +487,7 @@ export default function Budgets() {
                 ))}
               </select>
             </div>
-            <div>
+            <div className="w-full sm:w-auto">
               <p className="text-xs text-gray-400 mb-1">Monthly Limit *</p>
               <input
                 type="number"
@@ -496,13 +497,13 @@ export default function Budgets() {
                 value={newBudgetLimit}
                 onChange={(e) => setNewBudgetLimit(e.target.value)}
                 placeholder="0.00"
-                className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 w-32 focus:outline-none focus:border-amber-500"
+                className="w-full sm:w-32 bg-gray-700 border border-gray-600 text-white text-base rounded-lg px-3 h-11 focus:outline-none focus:border-amber-500"
               />
             </div>
             <button
               type="submit"
               disabled={savingBudget}
-              className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+              className="px-4 h-11 bg-amber-500 hover:bg-amber-400 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 touch-manipulation"
             >
               {savingBudget ? "Saving..." : "Set Budget"}
             </button>
@@ -512,14 +513,14 @@ export default function Budgets() {
 
       {/* -- Recurring Expense Manager --------------------------------------- */}
       <div className="bg-gray-800 rounded-xl border border-gray-700">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-700">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-5 py-4 border-b border-gray-700">
           <div>
             <h2 className="text-white font-semibold">Recurring Expenses</h2>
             <p className="text-xs text-gray-500 mt-0.5">Automatic expense rules</p>
           </div>
           <button
             onClick={() => { setEditingRule(null); setShowRecurringModal(true); }}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-white text-sm font-medium transition-colors"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto px-3 h-11 rounded-lg bg-amber-500 hover:bg-amber-400 text-white text-sm font-medium transition-colors touch-manipulation"
           >
             <Plus size={14} /> Add Recurring
           </button>
@@ -530,7 +531,89 @@ export default function Budgets() {
             No recurring rules. Click "Add Recurring" to create one.
           </div>
         ) : (
-          <table className="w-full text-sm">
+          <>
+            <div className="md:hidden divide-y divide-gray-700/60">
+              {recurringRules.map((rule) => (
+                <div key={rule.id} className="p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-white font-medium truncate">{rule.name}</p>
+                      <div className="flex flex-wrap items-center gap-2 mt-2 text-sm text-gray-400">
+                        <span>{formatCurrency(rule.amount, currencySymbol)}</span>
+                        <span>•</span>
+                        <span>{FREQ_LABELS[rule.frequency]}</span>
+                        <span>•</span>
+                        <span>{format(parseISO(rule.next_due_date), "MMM d, yyyy")}</span>
+                      </div>
+                      {rule.category ? (
+                        <span
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium mt-2"
+                          style={{
+                            backgroundColor: rule.category.color + "22",
+                            color: rule.category.color,
+                          }}
+                        >
+                          {rule.category.icon} {rule.category.name}
+                        </span>
+                      ) : null}
+                    </div>
+                    <button
+                      onClick={() => handleToggleRule(rule.id)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors touch-manipulation ${
+                        rule.is_active ? "bg-amber-500" : "bg-gray-600"
+                      }`}
+                      aria-label={rule.is_active ? "Disable recurring rule" : "Enable recurring rule"}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          rule.is_active ? "translate-x-6" : "translate-x-1"
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => { setEditingRule(rule); setShowRecurringModal(true); }}
+                      className="flex-1 h-10 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-700 text-sm touch-manipulation"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => setPendingDeleteRule(pendingDeleteRule === rule.id ? null : rule.id)}
+                      className="flex-1 h-10 rounded-lg border border-red-500/30 text-red-300 hover:bg-red-500/10 text-sm touch-manipulation"
+                    >
+                      Delete
+                    </button>
+                  </div>
+
+                  {pendingDeleteRule === rule.id && (
+                    <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 flex items-start justify-between gap-3">
+                      <span className="text-red-300 text-sm">
+                        Delete <strong>{rule.name}</strong>?
+                      </span>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => setPendingDeleteRule(null)}
+                          className="px-3 h-9 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-700 text-xs touch-manipulation"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={() => handleDeleteRule(rule.id)}
+                          className="px-3 h-9 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-medium touch-manipulation"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-sm">
             <thead>
               <tr className="text-gray-500 text-xs uppercase tracking-wide border-b border-gray-700">
                 <th className="px-5 py-3 text-left">Name</th>
@@ -568,7 +651,7 @@ export default function Budgets() {
                     <td className="px-5 py-3 text-center">
                       <button
                         onClick={() => handleToggleRule(rule.id)}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors touch-manipulation ${
                           rule.is_active ? "bg-amber-500" : "bg-gray-600"
                         }`}
                       >
@@ -622,6 +705,8 @@ export default function Budgets() {
               ))}
             </tbody>
           </table>
+            </div>
+          </>
         )}
       </div>
 
@@ -632,7 +717,7 @@ export default function Budgets() {
           .filter((r) => r.is_active)
           .reduce((s, r) => s + r.amount, 0);
         return (
-          <div className="bg-gray-700 border border-gray-600 rounded-lg p-4 flex items-center justify-between">
+          <div className="bg-gray-700 border border-gray-600 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <p className="text-gray-400 text-sm">Monthly Recurring Total</p>
               <p className="text-gray-500 text-xs mt-0.5">
@@ -649,7 +734,7 @@ export default function Budgets() {
       {/* â”€â”€ Summary Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {budgetStatus.length > 0 && (
         <div className="bg-gray-800 rounded-xl border border-gray-700 p-5">
-          <div className="grid grid-cols-4 gap-4 text-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div>
               <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Total Budgeted</p>
               <p className="text-xl font-bold text-white">{formatCurrency(totalBudgeted, currencySymbol)}</p>
