@@ -304,8 +304,8 @@ export default function Transactions() {
       </div>
 
       {/* â”€â”€ Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-x-auto">
+        <table className="w-full min-w-[900px] text-sm">
           <thead>
             <tr className="border-b border-gray-700 text-gray-400 text-xs uppercase tracking-wide">
               <th
