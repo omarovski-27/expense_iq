@@ -54,7 +54,7 @@ export default function EditExpenseModal({ expense, onClose, onSaved }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[70] flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm">
       <div className="bg-gray-800 rounded-t-2xl md:rounded-xl border border-gray-700 w-full md:max-w-md p-6 shadow-xl max-h-[90vh] overflow-y-auto">
         <div className="w-10 h-1 bg-gray-600 rounded-full mx-auto mt-0 mb-4 md:hidden" />
         <div className="flex items-center justify-between mb-5">
@@ -179,7 +179,7 @@ export default function EditExpenseModal({ expense, onClose, onSaved }: Props) {
             />
           </div>
 
-          <div className="flex gap-3 pt-2">
+          <div className="sticky bottom-0 flex gap-3 pt-3 pb-2 bg-gray-800">
             <button
               type="button"
               onClick={onClose}

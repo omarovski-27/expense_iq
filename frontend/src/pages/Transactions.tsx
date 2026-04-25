@@ -303,6 +303,10 @@ export default function Transactions() {
         </button>
       </div>
 
+      <div className="md:hidden rounded-xl border border-gray-700 bg-gray-800/60 px-4 py-3 text-sm text-gray-400">
+        Transactions are shown as cards on mobile. Open this page on a larger screen for the full table columns.
+      </div>
+
       <div className="md:hidden space-y-3">
         {loading ? (
           Array.from({ length: 6 }).map((_, index) => (
