@@ -4,6 +4,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field as PydanticField
+from sqlalchemy import extract
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select, func
 
@@ -56,8 +57,8 @@ def get_budget_status(
         spent_row = session.exec(
             select(func.coalesce(func.sum(Expense.amount), 0.0)).where(
                 Expense.category_id == budget.category_id,
-                func.strftime("%m", Expense.date) == f"{m:02d}",
-                func.strftime("%Y", Expense.date) == str(y),
+                extract("month", Expense.date) == m,
+                extract("year", Expense.date) == y,
             )
         ).one()
         spent = float(spent_row)

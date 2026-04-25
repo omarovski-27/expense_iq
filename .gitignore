@@ -1,8 +1,13 @@
 .env
+.env.local
 .venv/
 __pycache__/
+__pycache__
 *.pyc
 node_modules/
+.vite/
 dist/
+dist
+*.db
 data/*.db
 .DS_Store

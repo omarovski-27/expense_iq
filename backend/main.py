@@ -1,15 +1,30 @@
 from contextlib import asynccontextmanager
+import logging
 
 import os
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sqlmodel import Session, select
 
 from database import create_db_and_tables, engine
 from models import Category
-from routers import analytics, budgets, categories, expenses, exports, insights, recurring
+from routers import analytics, budgets, categories, expenses, exports, health, insights, recurring
+
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+cors_origins = [
+    origin.strip()
+    for origin in os.getenv("CORS_ORIGINS", "").split(",")
+    if origin.strip()
+]
+if "http://localhost:5173" not in cors_origins:
+    cors_origins.append("http://localhost:5173")
 
 
 @asynccontextmanager
@@ -22,8 +37,8 @@ async def lifespan(app: FastAPI):
     with Session(engine) as recurring_session:
         try:
             process_recurring_expenses(recurring_session)
-        except Exception as e:
-            print(f"Warning: recurring expenses processing failed on startup: {e}")
+        except Exception:
+            logger.exception("Recurring expenses processing failed on startup")
 
     # Seed default categories if the table is empty
     default_categories = [
@@ -57,11 +72,18 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:5173").split(","),
+    allow_origins=cors_origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    logger.exception("Unhandled exception while processing %s", request.url.path, exc_info=exc)
+    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
 # Routers
 app.include_router(expenses.router, prefix="/api")
@@ -71,6 +93,7 @@ app.include_router(recurring.router, prefix="/api")
 app.include_router(insights.router, prefix="/api")
 app.include_router(analytics.router, prefix="/api")
 app.include_router(exports.router, prefix="/api")
+app.include_router(health.router)
 
 
 @app.get("/health")

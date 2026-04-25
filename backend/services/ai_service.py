@@ -9,7 +9,7 @@ from fastapi import HTTPException
 from anthropic import Anthropic
 from dotenv import load_dotenv
 from sqlmodel import Session, select
-from sqlalchemy import func
+from sqlalchemy import extract, func
 
 from database import get_session  # noqa — available for callers
 from models import AIInsight, Budget, Category, Expense
@@ -69,12 +69,10 @@ Rules:
 
 def _category_totals_for_month(month: int, year: int, db: Session) -> dict[int, float]:
     """Return {category_id: total_spent} for a given month/year."""
-    month_str = f"{month:02d}"
-    year_str = str(year)
     rows = db.exec(
         select(Expense.category_id, func.sum(Expense.amount).label("total"))
-        .where(func.strftime("%m", Expense.date) == month_str)
-        .where(func.strftime("%Y", Expense.date) == year_str)
+        .where(extract("month", Expense.date) == month)
+        .where(extract("year", Expense.date) == year)
         .group_by(Expense.category_id)
     ).all()
     return {row[0]: float(row[1]) for row in rows if row[0] is not None}
@@ -93,14 +91,11 @@ def _strip_code_fences(text: str) -> str:
 # ─────────────────────────────────────────────────────────────────────────────
 
 async def generate_monthly_insights(month: int, year: int, db: Session) -> list[AIInsight]:
-    month_str = f"{month:02d}"
-    year_str = str(year)
-
     # ── Fetch all expenses for this month ───────────────────────────────────
     expenses = db.exec(
         select(Expense)
-        .where(func.strftime("%m", Expense.date) == month_str)
-        .where(func.strftime("%Y", Expense.date) == year_str)
+        .where(extract("month", Expense.date) == month)
+        .where(extract("year", Expense.date) == year)
     ).all()
 
     # ── Group totals by category ────────────────────────────────────────────
@@ -245,8 +240,6 @@ async def generate_monthly_insights(month: int, year: int, db: Session) -> list[
 async def chat_with_finances(question: str, db: Session) -> str:
     today = date.today()
     month, year = today.month, today.year
-    month_str = f"{month:02d}"
-    year_str = str(year)
 
     categories = {c.id: c for c in db.exec(select(Category)).all()}
 
@@ -268,8 +261,8 @@ async def chat_with_finances(question: str, db: Session) -> str:
     # ── Current month transactions (max 50) ───────────────────────────────────
     recent_expenses = db.exec(
         select(Expense)
-        .where(func.strftime("%m", Expense.date) == month_str)
-        .where(func.strftime("%Y", Expense.date) == year_str)
+        .where(extract("month", Expense.date) == month)
+        .where(extract("year", Expense.date) == year)
         .order_by(Expense.date.desc())
         .limit(50)
     ).all()

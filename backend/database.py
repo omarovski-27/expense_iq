@@ -6,15 +6,34 @@ from sqlmodel import SQLModel, Session, create_engine
 
 load_dotenv()
 
-_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-_DEFAULT_DB = os.path.join(_BASE_DIR, "..", "data", "expenses.db")
-DATABASE_URL = os.getenv("DATABASE_URL", _DEFAULT_DB)
-# Resolve relative paths to absolute so subprocess workers find the same file
-if not os.path.isabs(DATABASE_URL):
-    DATABASE_URL = os.path.join(_BASE_DIR, DATABASE_URL)
-sqlite_url = f"sqlite:///{DATABASE_URL}"
+base_dir = os.path.dirname(os.path.abspath(__file__))
+database_url = os.getenv("DATABASE_URL", "sqlite:///../data/expenses.db")
 
-engine = create_engine(sqlite_url, connect_args={"check_same_thread": False})
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+if not database_url.startswith(("sqlite", "postgresql://")):
+    database_url = f"sqlite:///{database_url}"
+
+if database_url.startswith("sqlite:///"):
+    sqlite_path = database_url.replace("sqlite:///", "", 1)
+    if not os.path.isabs(sqlite_path):
+        sqlite_path = os.path.abspath(os.path.join(base_dir, sqlite_path))
+    database_url = f"sqlite:///{sqlite_path.replace(os.sep, '/')}"
+
+if database_url.startswith("sqlite"):
+    engine = create_engine(
+        database_url,
+        connect_args={"check_same_thread": False},
+    )
+else:
+    engine = create_engine(
+        database_url,
+        pool_pre_ping=True,
+        pool_size=5,
+        max_overflow=10,
+        pool_recycle=300,
+    )
 
 
 def get_session() -> Generator[Session, None, None]:

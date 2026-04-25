@@ -1,4 +1,5 @@
 from datetime import date
+import os
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -62,6 +63,8 @@ def list_insights(
 
 @router.post("/generate", response_model=list[AIInsightRead])
 async def generate_insights(body: GenerateBody, session: Session = Depends(get_session)):
+    if not os.getenv("ANTHROPIC_API_KEY"):
+        raise HTTPException(status_code=503, detail="AI service not configured")
     insights = await generate_monthly_insights(body.month, body.year, session)
     return insights
 
@@ -72,6 +75,8 @@ async def generate_insights(body: GenerateBody, session: Session = Depends(get_s
 
 @router.post("/chat")
 async def chat(body: ChatBody, session: Session = Depends(get_session)):
+    if not os.getenv("ANTHROPIC_API_KEY"):
+        raise HTTPException(status_code=503, detail="AI service not configured")
     if not body.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty")
     if len(body.question) > 1000:

@@ -17,13 +17,13 @@ def _build_expense_query(
     year: Optional[int],
     category_id: Optional[int],
 ):
-    from sqlalchemy import func
+    from sqlalchemy import extract
 
     query = select(Expense).order_by(Expense.date.desc())
     if month is not None:
-        query = query.where(func.strftime("%m", Expense.date) == f"{month:02d}")
+        query = query.where(extract("month", Expense.date) == month)
     if year is not None:
-        query = query.where(func.strftime("%Y", Expense.date) == str(year))
+        query = query.where(extract("year", Expense.date) == year)
     if category_id is not None:
         query = query.where(Expense.category_id == category_id)
     return session.exec(query).all()
