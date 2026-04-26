@@ -5,9 +5,6 @@ echo.
 start "ExpenseIQ Backend" cmd /k "cd /d %~dp0backend && .venv\Scripts\activate && uvicorn main:app --reload --port 8000"
 echo Backend starting...
 timeout /t 3 /nobreak > nul
-start "ExpenseIQ Telegram Bot" cmd /k "cd /d %~dp0backend && .venv\Scripts\activate && python telegram_bot.py"
-echo Telegram bot starting...
-timeout /t 4 /nobreak > nul
 start "ExpenseIQ Frontend" cmd /k "cd /d %~dp0frontend && npm run dev -- --host"
 echo Frontend starting...
 timeout /t 5 /nobreak > nul
@@ -16,6 +13,5 @@ echo.
 echo All services started.
 echo Backend:  http://localhost:8000
 echo Frontend: http://localhost:5173
-echo Bot:      Running in Telegram Bot window
 echo.
 pause
