@@ -54,8 +54,8 @@ export default function AddExpenseModal({ onClose, onSaved }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="bg-gray-800 rounded-t-2xl md:rounded-xl border border-gray-700 w-full md:max-w-md p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="w-full md:w-auto md:max-w-md bg-gray-800 rounded-t-2xl md:rounded-xl border border-gray-700 p-6 shadow-xl max-h-[90vh] overflow-y-auto">
         <div className="w-10 h-1 bg-gray-600 rounded-full mx-auto mt-0 mb-4 md:hidden" />
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-white font-semibold text-lg">Add Expense</h2>

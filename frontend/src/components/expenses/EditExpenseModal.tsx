@@ -54,8 +54,8 @@ export default function EditExpenseModal({ expense, onClose, onSaved }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="bg-gray-800 rounded-t-2xl md:rounded-xl border border-gray-700 w-full md:max-w-md p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="w-full md:w-auto md:max-w-md bg-gray-800 rounded-t-2xl md:rounded-xl border border-gray-700 p-6 shadow-xl max-h-[90vh] overflow-y-auto">
         <div className="w-10 h-1 bg-gray-600 rounded-full mx-auto mt-0 mb-4 md:hidden" />
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-white font-semibold text-lg">Edit Expense</h2>
@@ -110,7 +110,7 @@ export default function EditExpenseModal({ expense, onClose, onSaved }: Props) {
                 onChange={(e) => setForm({ ...form, category_id: e.target.value })}
                 className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 h-11 text-white text-base focus:outline-none focus:border-amber-500"
               >
-                <option value="">Selectâ€¦</option>
+                <option value="">Select...</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.icon} {c.name}
@@ -151,7 +151,7 @@ export default function EditExpenseModal({ expense, onClose, onSaved }: Props) {
             </button>
           </div>
 
-          {/* Frequency â€” shown only when recurring */}
+          {/* Frequency - shown only when recurring */}
           {form.is_recurring && (
             <div>
               <label className="text-xs text-gray-400 mb-1 block">Frequency</label>
@@ -192,7 +192,7 @@ export default function EditExpenseModal({ expense, onClose, onSaved }: Props) {
               disabled={saving}
               className="flex-1 px-4 h-11 rounded-lg bg-amber-500 hover:bg-amber-400 text-white font-medium text-sm transition-colors disabled:opacity-50 touch-manipulation"
             >
-              {saving ? "Savingâ€¦" : "Save Changes"}
+              {saving ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </form>

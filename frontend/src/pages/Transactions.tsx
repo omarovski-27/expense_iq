@@ -321,7 +321,7 @@ export default function Transactions() {
           ))
         ) : paginated.length === 0 ? (
           <div className="bg-gray-800 rounded-xl border border-gray-700 px-4 py-16 text-center">
-            <p className="text-4xl mb-3">ðŸ“­</p>
+            <p className="text-4xl mb-3">No data</p>
             <p className="text-white font-semibold mb-1">No expenses found</p>
             <p className="text-gray-500 text-sm">Try adjusting your filters or add a new expense</p>
           </div>
@@ -409,7 +409,7 @@ export default function Transactions() {
         )}
       </div>
 
-      {/* â”€â”€ Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* Table */}
       <div className="hidden md:block bg-gray-800 rounded-xl border border-gray-700 overflow-x-auto">
         <table className="w-full min-w-[900px] text-sm">
           <thead>
@@ -457,7 +457,7 @@ export default function Transactions() {
             ) : paginated.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-4 py-16 text-center">
-                  <p className="text-4xl mb-3">ðŸ“­</p>
+                  <p className="text-4xl mb-3">No data</p>
                   <p className="text-white font-semibold mb-1">No expenses found</p>
                   <p className="text-gray-500 text-xs">Try adjusting your filters or add a new expense</p>
                 </td>
@@ -473,7 +473,7 @@ export default function Transactions() {
                       {format(parseISO(exp.date), "MMM d, yyyy")}
                     </td>
                     <td className="px-4 py-3 text-gray-300 max-w-[120px] truncate">
-                      {exp.merchant || <span className="text-gray-600">â€”</span>}
+                      {exp.merchant || <span className="text-gray-600">-</span>}
                     </td>
                     <td className="px-4 py-3 max-w-[200px] truncate">{exp.description}</td>
                     <td className="px-4 py-3">
@@ -488,7 +488,7 @@ export default function Transactions() {
                           {exp.category.icon} {exp.category.name}
                         </span>
                       ) : (
-                        <span className="text-gray-600 text-xs">â€”</span>
+                        <span className="text-gray-600 text-xs">-</span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-right font-medium text-white whitespace-nowrap">

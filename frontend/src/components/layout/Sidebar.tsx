@@ -21,7 +21,7 @@ export default function Sidebar() {
       {/* Branding */}
       <div className="px-3 md:px-5 py-5 border-b border-gray-800 flex items-center justify-center md:justify-start overflow-hidden">
         <span className="text-lg font-bold text-white whitespace-nowrap">
-          <span className="text-amber-400">ðŸ’°</span>
+          <span className="text-amber-400">$</span>
           <span className="hidden md:inline"> ExpenseIQ</span>
         </span>
       </div>

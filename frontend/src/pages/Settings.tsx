@@ -79,7 +79,7 @@ function EditRow({ category, onSave, onCancel }: EditRowProps) {
         onChange={(e) => setIcon(e.target.value)}
         className="w-full sm:w-14 text-center bg-gray-600 border border-gray-500 rounded px-1 h-11 text-white text-lg"
         maxLength={2}
-        placeholder="ðŸ·"
+        placeholder="$"
       />
       <input
         value={name}
@@ -183,7 +183,7 @@ export default function Settings() {
       const cat = await createCategory({
         name: newName.trim(),
         color: newColor,
-        icon: newIcon || "ðŸ“¦",
+        icon: newIcon || "$",
       });
       setCategories((prev) => [...prev, cat]);
       setNewName("");
@@ -250,7 +250,7 @@ export default function Settings() {
     "bg-gray-700 border border-gray-600 rounded-lg px-3 h-11 text-white text-base focus:outline-none focus:border-amber-500 w-full";
 
   return (
-    <div className="p-4 md:p-6 max-w-3xl mx-auto pb-24 md:pb-6">
+    <div className="p-4 md:p-6 max-w-3xl mx-auto pb-16 md:pb-0">
       <h1 className="text-2xl font-bold text-white mb-6">Settings</h1>
 
       {/* â”€â”€ SECTION 1: Category Manager â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
@@ -283,7 +283,7 @@ export default function Settings() {
                     className="w-full sm:w-auto bg-gray-700 border border-gray-600 rounded px-3 h-11 text-base text-white focus:outline-none focus:border-amber-500"
                     title="Reassign expenses to"
                   >
-                    <option value="">Reassign expenses toâ€¦</option>
+                    <option value="">Reassign expenses to...</option>
                     {categories
                       .filter((c) => c.id !== cat.id)
                       .map((c) => (
@@ -353,7 +353,7 @@ export default function Settings() {
               <input
                 value={newIcon}
                 onChange={(e) => setNewIcon(e.target.value)}
-                placeholder="ðŸ“¦"
+                placeholder="$"
                 maxLength={2}
                 className={inputClass + " text-center text-lg"}
               />
@@ -487,7 +487,7 @@ export default function Settings() {
 
         <div className="space-y-3">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">ðŸ’°</span>
+            <span className="text-2xl">$</span>
             <div>
               <p className="text-white font-semibold text-base">ExpenseIQ v1.0.0</p>
               <p className="text-gray-400 text-sm">AI-powered personal expense tracker</p>

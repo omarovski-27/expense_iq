@@ -71,6 +71,7 @@ app = FastAPI(
     title="ExpenseIQ API",
     version="1.0.0",
     lifespan=lifespan,
+    redirect_slashes=False,
 )
 
 app.add_middleware(

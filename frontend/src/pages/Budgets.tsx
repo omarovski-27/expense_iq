@@ -264,10 +264,10 @@ function InlineLimitEditor({ budgetId, categoryId, currentLimit, currencySymbol,
         className="w-24 bg-gray-700 border border-amber-500 rounded px-2 h-9 text-white text-sm focus:outline-none"
       />
       <button onClick={save} disabled={saving}
-        className="text-xs px-2 h-9 bg-amber-500 hover:bg-amber-400 text-white rounded transition-colors disabled:opacity-50 touch-manipulation">
-        {saving ? "â€¦" : "âœ“"}
+        className="text-xs px-3 h-9 bg-amber-500 hover:bg-amber-400 text-white rounded transition-colors disabled:opacity-50 touch-manipulation">
+        {saving ? "..." : "Save"}
       </button>
-      <button onClick={() => setEditing(false)} className="text-xs h-9 px-2 text-gray-500 hover:text-white touch-manipulation">âœ•</button>
+      <button onClick={() => setEditing(false)} className="text-xs h-9 px-2 text-gray-500 hover:text-white touch-manipulation">Cancel</button>
     </div>
   );
 }
@@ -642,7 +642,7 @@ export default function Budgets() {
                         >
                           {rule.category.icon} {rule.category.name}
                         </span>
-                      ) : "â€”"}
+                      ) : "-"}
                     </td>
                     <td className="px-5 py-3">{FREQ_LABELS[rule.frequency]}</td>
                     <td className="px-5 py-3 text-gray-400">

@@ -167,7 +167,7 @@ export default function Insights() {
             {isGenerating
               ? <Loader2 size={16} className="animate-spin" />
               : <Sparkles size={16} />}
-            {isGenerating ? "Generatingâ€¦" : "Generate AI Report"}
+            {isGenerating ? "Generating..." : "Generate AI Report"}
           </button>
           {lastGenerated && (
             <span className="text-gray-500 text-sm">
@@ -327,7 +327,7 @@ export default function Insights() {
                   {estimatedSavings !== null && !isNaN(estimatedSavings) && (
                     <div className="mt-3">
                       <span className="text-xs px-2 py-1 rounded-full bg-green-500/15 text-green-400 border border-green-500/30 font-medium">
-                        ðŸ’° Save up to {formatCurrency(estimatedSavings, currencySymbol)}/month
+                        Save up to {formatCurrency(estimatedSavings, currencySymbol)}/month
                       </span>
                     </div>
                   )}
@@ -403,7 +403,7 @@ export default function Insights() {
             value={chatInput}
             onChange={(e) => setChatInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-            placeholder="Ask about your spendingâ€¦"
+            placeholder="Ask about your spending..."
             disabled={isChatLoading}
             className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-4 h-11 text-white text-base placeholder-gray-500 focus:outline-none focus:border-amber-500 disabled:opacity-50"
           />
