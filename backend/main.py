@@ -1,17 +1,20 @@
 from contextlib import asynccontextmanager
+from datetime import date
 import logging
 
 import os
 
+import httpx
 import uvicorn
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlmodel import Session, select
 
 from database import create_db_and_tables, engine
-from models import Category
+from models import Category, Expense
 from routers import analytics, budgets, categories, expenses, exports, health, insights, recurring
+from services.telegram_service import build_expense_payload, format_confirmation, format_help_text, parse_expense_text
 
 
 logging.basicConfig(level=logging.INFO)
@@ -99,6 +102,70 @@ app.include_router(health.router)
 @app.get("/health")
 def health_check():
     return {"status": "ok", "version": "1.0.0"}
+
+
+@app.post("/webhook/telegram")
+async def telegram_webhook(payload: dict):
+    telegram_token = os.getenv("TELEGRAM_BOT_TOKEN")
+    allowed_user_id = int(os.getenv("TELEGRAM_ALLOWED_USER_ID", "0"))
+
+    if not telegram_token:
+        raise HTTPException(status_code=503, detail="Telegram bot is not configured")
+
+    message = payload.get("message") or payload.get("edited_message")
+    if not message:
+        return {"ok": True}
+
+    from_user = message.get("from") or {}
+    if from_user.get("id") != allowed_user_id:
+        return {"ok": True}
+
+    message_text = (message.get("text") or "").strip()
+    chat = message.get("chat") or {}
+    chat_id = chat.get("id")
+    if not message_text or chat_id is None:
+        return {"ok": True}
+
+    command = message_text.split()[0].lower()
+    if command.startswith("/"):
+        if command in {"/help", "/categories"}:
+            reply_text = format_help_text()
+        elif command in {"/today", "/month", "/budget"}:
+            reply_text = "Not yet implemented."
+        else:
+            reply_text = format_help_text()
+
+        api_url = f"https://api.telegram.org/bot{telegram_token}/sendMessage"
+        async with httpx.AsyncClient(timeout=15) as client:
+            response = await client.post(api_url, json={"chat_id": chat_id, "text": reply_text})
+            response.raise_for_status()
+
+        return {"ok": True}
+
+    with Session(engine) as session:
+        category_rows = session.exec(select(Category).order_by(Category.name)).all()
+        category_payload = [
+            {"id": category.id, "name": category.name}
+            for category in category_rows
+        ]
+        parsed = parse_expense_text(message_text, category_payload)
+
+        if parsed is None:
+            reply_text = format_help_text()
+        else:
+            today = date.today()
+            expense_data = build_expense_payload(parsed, today)
+            expense = Expense.model_validate(expense_data)
+            session.add(expense)
+            session.commit()
+            reply_text = format_confirmation(parsed, today)
+
+    api_url = f"https://api.telegram.org/bot{telegram_token}/sendMessage"
+    async with httpx.AsyncClient(timeout=15) as client:
+        response = await client.post(api_url, json={"chat_id": chat_id, "text": reply_text})
+        response.raise_for_status()
+
+    return {"ok": True}
 
 
 if __name__ == "__main__":
