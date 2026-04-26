@@ -6,7 +6,7 @@ import os
 
 import httpx
 import uvicorn
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlmodel import Session, select
@@ -102,6 +102,11 @@ app.include_router(health.router)
 @app.get("/health")
 def health_check():
     return {"status": "ok", "version": "1.0.0"}
+
+
+@app.head("/health", status_code=200)
+def health_check_head():
+    return Response(status_code=200)
 
 
 @app.post("/webhook/telegram")
