@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from datetime import date
+from datetime import date, timedelta
 import logging
 
 import os
@@ -18,7 +18,9 @@ from services.telegram_service import (
     build_expense_payload,
     format_confirmation,
     format_help_text,
+    format_month_expenses,
     format_today_expenses,
+    format_week_expenses,
     parse_expense_text,
 )
 
@@ -161,7 +163,56 @@ async def telegram_webhook(payload: dict):
                     for expense in expense_rows
                 ]
             reply_text = format_today_expenses(expense_payload, today)
-        elif command in {"/month", "/budget"}:
+        elif command == "/week":
+            today = date.today()
+            week_start = today - timedelta(days=today.weekday())
+            with Session(engine) as session:
+                expense_rows = session.exec(
+                    select(Expense)
+                    .where(Expense.date >= week_start)
+                    .where(Expense.date <= today)
+                    .order_by(Expense.date, Expense.id)
+                ).all()
+                expense_payload = [
+                    {
+                        "description": expense.description,
+                        "merchant": expense.merchant,
+                        "amount": expense.amount,
+                        "category_name": (
+                            expense.category.name if expense.category else "Uncategorized"
+                        ),
+                    }
+                    for expense in expense_rows
+                ]
+            reply_text = format_week_expenses(expense_payload, today)
+        elif command == "/month":
+            today = date.today()
+            month_start = date(today.year, today.month, 1)
+            if today.month == 12:
+                next_month_start = date(today.year + 1, 1, 1)
+            else:
+                next_month_start = date(today.year, today.month + 1, 1)
+
+            with Session(engine) as session:
+                expense_rows = session.exec(
+                    select(Expense)
+                    .where(Expense.date >= month_start)
+                    .where(Expense.date < next_month_start)
+                    .order_by(Expense.date, Expense.id)
+                ).all()
+                expense_payload = [
+                    {
+                        "description": expense.description,
+                        "merchant": expense.merchant,
+                        "amount": expense.amount,
+                        "category_name": (
+                            expense.category.name if expense.category else "Uncategorized"
+                        ),
+                    }
+                    for expense in expense_rows
+                ]
+            reply_text = format_month_expenses(expense_payload, today)
+        elif command == "/budget":
             reply_text = "Not yet implemented."
         else:
             reply_text = format_help_text()

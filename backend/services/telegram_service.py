@@ -15,6 +15,7 @@ def format_help_text() -> str:
         "amount only: 14.7 (category defaults to Other)\n\n"
         "Commands:\n"
         "/today - expenses today\n"
+        "/week - expenses this week\n"
         "/month - this month summary\n"
         "/budget - budget status\n"
         "/categories - list all categories"
@@ -37,6 +38,55 @@ def format_today_expenses(expenses: list[dict], target_date: date) -> str:
 
     lines.append("")
     lines.append(f"Total: {total:.2f} JD")
+    return "\n".join(lines)
+
+
+def format_week_expenses(expenses: list[dict], target_date: date) -> str:
+    if not expenses:
+        return f"No expenses this week for {today_display(target_date)}."
+
+    week_start = target_date.fromordinal(target_date.toordinal() - target_date.weekday())
+    week_end = week_start.fromordinal(week_start.toordinal() + 6)
+
+    lines = [
+        (
+            f"Expenses for {week_start:%b} {week_start.day}"
+            f" - {week_end:%b} {week_end.day}, {week_end:%Y}:"
+        )
+    ]
+    total = 0.0
+
+    for expense in expenses:
+        name = expense.get("merchant") or expense.get("description") or "Expense"
+        amount = float(expense.get("amount", 0))
+        category_name = expense.get("category_name") or "Uncategorized"
+        total += amount
+        lines.append(f"- {name}: {amount:.2f} JD ({category_name})")
+
+    lines.append("")
+    lines.append(f"Total: {total:.2f} JD")
+    return "\n".join(lines)
+
+
+def format_month_expenses(expenses: list[dict], target_date: date) -> str:
+    if not expenses:
+        return f"No expenses this month for {target_date:%B %Y}."
+
+    category_totals: dict[str, float] = {}
+    grand_total = 0.0
+
+    for expense in expenses:
+        category_name = expense.get("category_name") or "Uncategorized"
+        amount = float(expense.get("amount", 0))
+        category_totals[category_name] = category_totals.get(category_name, 0.0) + amount
+        grand_total += amount
+
+    lines = [f"Summary for {target_date:%B %Y}:"]
+    for category_name, amount in sorted(category_totals.items()):
+        lines.append(f"- {category_name}: {amount:.2f} JD")
+
+    lines.append("")
+    lines.append(f"Grand total: {grand_total:.2f} JD")
     return "\n".join(lines)
 
 
