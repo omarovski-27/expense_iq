@@ -1,5 +1,12 @@
 .env
 .env.local
+.env.production
+.env.*
+!.env.example
+backend/.env*
+!backend/.env.example
+frontend/.env*
+!frontend/.env.example
 .venv/
 __pycache__/
 __pycache__
@@ -11,3 +18,5 @@ dist
 *.db
 data/*.db
 .DS_Store
+files/*-local.png
+expenseiq_omar_bot_token.txt

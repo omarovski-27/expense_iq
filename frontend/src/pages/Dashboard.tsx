@@ -114,14 +114,14 @@ export default function Dashboard() {
     <div className="space-y-6">
 
       {/* ------------------------------------------------------------------ */}
-      {/* SECTION 1 â€” KPI Row                                                 */}
+      {/* SECTION 1 — KPI Row                                                 */}
       {/* ------------------------------------------------------------------ */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {loading ? (
           Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
         ) : (
           <>
-            {/* Card 1 â€” Total This Month */}
+            {/* Card 1 — Total This Month */}
             <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
               <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">
                 Total This Month
@@ -145,7 +145,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Card 2 â€” Budget Used */}
+            {/* Card 2 — Budget Used */}
             <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
               <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">
                 Budget Used
@@ -156,7 +156,7 @@ export default function Dashboard() {
               <p className="text-xs text-gray-500 mt-2">of monthly budget</p>
             </div>
 
-            {/* Card 3 â€” Daily Average */}
+            {/* Card 3 — Daily Average */}
             <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
               <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">
                 Daily Average
@@ -167,7 +167,7 @@ export default function Dashboard() {
               <p className="text-xs text-gray-500 mt-2">per day this month</p>
             </div>
 
-            {/* Card 4 â€” Top Category */}
+            {/* Card 4 — Top Category */}
             <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
               <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">
                 Top Category
@@ -191,7 +191,7 @@ export default function Dashboard() {
       </div>
 
       {/* ------------------------------------------------------------------ */}
-      {/* SECTION 2 â€” Charts (60/40)                                          */}
+      {/* SECTION 2 — Charts (60/40)                                          */}
       {/* ------------------------------------------------------------------ */}
       <div className="flex flex-col md:flex-row gap-4">
         {loading ? (
@@ -212,7 +212,7 @@ export default function Dashboard() {
       </div>
 
       {/* ------------------------------------------------------------------ */}
-      {/* SECTION 3 â€” Budget Progress (full width)                            */}
+      {/* SECTION 3 — Budget Progress (full width)                            */}
       {/* ------------------------------------------------------------------ */}
       {loading ? (
         <SkeletonBlock className="h-40" />
@@ -226,7 +226,7 @@ export default function Dashboard() {
       ) : null}
 
       {/* ------------------------------------------------------------------ */}
-      {/* SECTION 4 â€” Recent Transactions (60%) + Insights (40%)             */}
+      {/* SECTION 4 — Recent Transactions (60%) + Insights (40%)             */}
       {/* ------------------------------------------------------------------ */}
       <div className="flex flex-col md:flex-row gap-4">
         {/* Recent Transactions */}
@@ -245,7 +245,7 @@ export default function Dashboard() {
             </div>
           ) : expenses.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <span className="text-5xl mb-4">ðŸ“­</span>
+              <span className="text-5xl mb-4">📭</span>
               <h3 className="text-white font-semibold text-base mb-1">No expenses yet</h3>
               <p className="text-gray-400 text-sm mb-4">Add your first expense to get started</p>
               <button
@@ -256,44 +256,82 @@ export default function Dashboard() {
               </button>
             </div>
           ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-gray-500 border-b border-gray-700 text-left">
-                  <th className="pb-2 font-medium">Date</th>
-                  <th className="pb-2 font-medium">Description</th>
-                  <th className="pb-2 font-medium">Category</th>
-                  <th className="pb-2 font-medium text-right">Amount</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-700">
+            <>
+              <div className="block md:hidden">
                 {expenses.map((exp) => (
-                  <tr key={exp.id} className="text-gray-300">
-                    <td className="py-2 text-gray-400 whitespace-nowrap">
-                      {format(parseISO(exp.date), "MMM d")}
-                    </td>
-                    <td className="py-2 truncate max-w-[160px]">
-                      {exp.merchant || exp.description}
-                    </td>
-                    <td className="py-2">
+                  <div
+                    key={exp.id}
+                    className="border-b border-gray-700 py-3 flex items-start justify-between gap-3 last:border-b-0"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="text-white text-sm font-medium truncate">
+                        {exp.merchant || exp.description}
+                      </p>
                       {exp.category && (
-                        <span
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
-                          style={{
-                            backgroundColor: exp.category.color + "22",
-                            color: exp.category.color,
-                          }}
-                        >
-                          {exp.category.icon} {exp.category.name}
-                        </span>
+                        <div className="mt-1">
+                          <span
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
+                            style={{
+                              backgroundColor: exp.category.color + "22",
+                              color: exp.category.color,
+                            }}
+                          >
+                            {exp.category.icon} {exp.category.name}
+                          </span>
+                        </div>
                       )}
-                    </td>
-                    <td className="py-2 text-right font-medium text-white">
-                      {formatCurrency(exp.amount, currencySymbol)}
-                    </td>
-                  </tr>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="text-amber-400 font-medium text-sm">
+                        {formatCurrency(exp.amount, currencySymbol)}
+                      </p>
+                      <p className="text-gray-500 text-xs mt-1">
+                        {format(parseISO(exp.date), "MMM d")}
+                      </p>
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
+              </div>
+
+              <table className="hidden md:table w-full text-sm">
+                <thead>
+                  <tr className="text-gray-500 border-b border-gray-700 text-left">
+                    <th className="pb-2 font-medium">Date</th>
+                    <th className="pb-2 font-medium">Description</th>
+                    <th className="pb-2 font-medium">Category</th>
+                    <th className="pb-2 font-medium text-right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-700">
+                  {expenses.map((exp) => (
+                    <tr key={exp.id} className="text-gray-300">
+                      <td className="py-2 text-gray-400 whitespace-nowrap">
+                        {format(parseISO(exp.date), "MMM d")}
+                      </td>
+                      <td className="py-2 truncate max-w-[160px]">
+                        {exp.merchant || exp.description}
+                      </td>
+                      <td className="py-2">
+                        {exp.category && (
+                          <span
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
+                            style={{
+                              backgroundColor: exp.category.color + "22",
+                              color: exp.category.color,
+                            }}
+                          >
+                            {exp.category.icon} {exp.category.name}
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-2 text-right font-medium text-white">
+                        {formatCurrency(exp.amount, currencySymbol)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
           )}
         </div>
 
