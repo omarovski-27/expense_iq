@@ -14,7 +14,13 @@ from sqlmodel import Session, select
 from database import create_db_and_tables, engine
 from models import Category, Expense
 from routers import analytics, budgets, categories, expenses, exports, health, insights, recurring
-from services.telegram_service import build_expense_payload, format_confirmation, format_help_text, parse_expense_text
+from services.telegram_service import (
+    build_expense_payload,
+    format_confirmation,
+    format_help_text,
+    format_today_expenses,
+    parse_expense_text,
+)
 
 
 logging.basicConfig(level=logging.INFO)
@@ -135,7 +141,27 @@ async def telegram_webhook(payload: dict):
     if command.startswith("/"):
         if command in {"/help", "/categories"}:
             reply_text = format_help_text()
-        elif command in {"/today", "/month", "/budget"}:
+        elif command == "/today":
+            today = date.today()
+            with Session(engine) as session:
+                expense_rows = session.exec(
+                    select(Expense)
+                    .where(Expense.date == today)
+                    .order_by(Expense.id)
+                ).all()
+                expense_payload = [
+                    {
+                        "description": expense.description,
+                        "merchant": expense.merchant,
+                        "amount": expense.amount,
+                        "category_name": (
+                            expense.category.name if expense.category else "Uncategorized"
+                        ),
+                    }
+                    for expense in expense_rows
+                ]
+            reply_text = format_today_expenses(expense_payload, today)
+        elif command in {"/month", "/budget"}:
             reply_text = "Not yet implemented."
         else:
             reply_text = format_help_text()

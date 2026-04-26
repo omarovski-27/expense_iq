@@ -21,6 +21,25 @@ def format_help_text() -> str:
     )
 
 
+def format_today_expenses(expenses: list[dict], target_date: date) -> str:
+    if not expenses:
+        return f"No expenses today for {today_display(target_date)}."
+
+    lines = [f"Expenses for {today_display(target_date)}:"]
+    total = 0.0
+
+    for expense in expenses:
+        name = expense.get("merchant") or expense.get("description") or "Expense"
+        amount = float(expense.get("amount", 0))
+        category_name = expense.get("category_name") or "Uncategorized"
+        total += amount
+        lines.append(f"- {name}: {amount:.2f} JD ({category_name})")
+
+    lines.append("")
+    lines.append(f"Total: {total:.2f} JD")
+    return "\n".join(lines)
+
+
 def find_category_id(text: str, categories: list[dict]):
     if not categories:
         raise ValueError("No categories available")
