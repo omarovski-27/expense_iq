@@ -1,4 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
+from calendar import monthrange
+from datetime import date as date_
+from typing import Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, select
 
 from database import get_session
@@ -25,13 +29,36 @@ def _rule_read(rule: RecurringRule, session: Session) -> dict:
     return data
 
 
+def _rule_applies_to_month(rule: RecurringRule, month: int, year: int) -> bool:
+    """True if the rule would generate at least one charge during (month, year).
+
+    A rule's first possible charge is bounded by `created_at`. After that, the
+    cadence determines whether the rule hits the selected month:
+      - daily / weekly / monthly: charges in every subsequent month
+      - yearly: charges only in the anniversary month (anchored on next_due_date)
+    """
+    last_day = date_(year, month, monthrange(year, month)[1])
+    rule_start = rule.created_at.date()
+    if rule_start > last_day:
+        return False
+    if rule.frequency == "yearly":
+        return rule.next_due_date.month == month
+    return True
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # GET /recurring
 # ─────────────────────────────────────────────────────────────────────────────
 
 @router.get("/")
-def list_recurring(session: Session = Depends(get_session)):
+def list_recurring(
+    month: Optional[int] = Query(None, ge=1, le=12),
+    year: Optional[int] = Query(None, ge=1970, le=2100),
+    session: Session = Depends(get_session),
+):
     rules = session.exec(select(RecurringRule).order_by(RecurringRule.name)).all()
+    if month is not None and year is not None:
+        rules = [r for r in rules if _rule_applies_to_month(r, month, year)]
     return [_rule_read(r, session) for r in rules]
 
 

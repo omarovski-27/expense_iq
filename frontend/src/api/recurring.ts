@@ -10,8 +10,12 @@ export interface RecurringRuleCreate {
   is_active?: boolean;
 }
 
-export async function getRecurringRules(): Promise<RecurringRule[]> {
-  const { data } = await client.get<RecurringRule[]>("/recurring");
+export async function getRecurringRules(
+  month?: number,
+  year?: number,
+): Promise<RecurringRule[]> {
+  const params = month !== undefined && year !== undefined ? { month, year } : undefined;
+  const { data } = await client.get<RecurringRule[]>("/recurring", { params });
   return data;
 }
 

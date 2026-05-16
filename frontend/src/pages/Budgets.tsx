@@ -314,7 +314,7 @@ export default function Budgets() {
       const [bs, cats, rules] = await Promise.all([
         getBudgetStatus(month, year),
         getCategories(),
-        getRecurringRules(),
+        getRecurringRules(month, year),
       ]);
       setBudgetStatus(bs);
       setCategories(cats);
