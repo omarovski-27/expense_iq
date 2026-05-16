@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+﻿import { useState, useEffect, useCallback } from "react";
 import { format, parseISO, getDaysInMonth, getDate, getYear, getMonth } from "date-fns";
 import {
   Plus, Pencil, Trash2, X, RefreshCw,
@@ -225,6 +225,10 @@ function InlineLimitEditor({ budgetId, categoryId, currentLimit, currencySymbol,
   const [value, setValue] = useState(String(currentLimit));
   const [saving, setSaving] = useState(false);
 
+  useEffect(() => {
+    if (!editing) setValue(String(currentLimit));
+  }, [currentLimit, editing]);
+
   async function save() {
     const limit = parseFloat(value);
     if (!limit || limit <= 0) { toast.error("Enter a valid limit"); return; }
@@ -304,7 +308,7 @@ export default function Budgets() {
     ? daysInMonth - today
     : 0;
 
-  async function fetchAll() {
+  const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
       const [bs, cats, rules] = await Promise.all([
@@ -318,9 +322,9 @@ export default function Budgets() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [month, year]);
 
-  useEffect(() => { fetchAll(); }, [month, year]);
+  useEffect(() => { fetchAll(); }, [fetchAll]);
 
   async function handleDeleteRule(id: number) {
     await deleteRecurringRule(id);
@@ -410,7 +414,7 @@ export default function Budgets() {
             const style = STATUS_STYLES[b.status];
             return (
               <div
-                key={b.category.id}
+                key={`${year}-${month}-${b.category.id}`}
                 className="bg-gray-800 rounded-xl border border-gray-700 p-5 border-l-4"
                 style={{ borderLeftColor: b.category.color }}
               >
@@ -434,7 +438,7 @@ export default function Budgets() {
                     <div>
                       <p className="text-xs text-gray-500">Limit</p>
                       <InlineLimitEditor
-                        budgetId={undefined}
+                        budgetId={b.budget_id}
                         categoryId={b.category.id}
                         currentLimit={b.monthly_limit}
                         currencySymbol={currencySymbol}

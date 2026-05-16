@@ -13,6 +13,7 @@ from sqlmodel import Session, select
 
 from database import create_db_and_tables, engine
 from models import Category, Expense, RecurringRule
+from services.recurring_service import process_recurring_expenses
 from routers import analytics, budgets, categories, expenses, exports, health, insights, recurring
 from services.telegram_service import (
     build_expense_payload,
@@ -46,13 +47,26 @@ async def lifespan(app: FastAPI):
     # Create tables
     create_db_and_tables()
 
-    # Process any recurring expenses that became due
-    from services.recurring_service import process_recurring_expenses
+    # Process any recurring expenses that became due and notify via Telegram
     with Session(engine) as recurring_session:
         try:
-            process_recurring_expenses(recurring_session)
+            charged = process_recurring_expenses(recurring_session)
         except Exception:
             logger.exception("Recurring expenses processing failed on startup")
+            charged = []
+
+    if charged:
+        _telegram_token = os.getenv("TELEGRAM_BOT_TOKEN")
+        _chat_id_str = os.getenv("TELEGRAM_ALLOWED_USER_ID")
+        if _telegram_token and _chat_id_str:
+            _api_url = f"https://api.telegram.org/bot{_telegram_token}/sendMessage"
+            async with httpx.AsyncClient(timeout=15) as _client:
+                for item in charged:
+                    _msg = f"\U0001f4c5 Auto-charged: {item['name']} — {item['amount']:.2f} JOD added to today's expenses."
+                    try:
+                        await _client.post(_api_url, json={"chat_id": int(_chat_id_str), "text": _msg})
+                    except Exception:
+                        logger.exception("Failed to send Telegram startup notification for %s", item["name"])
 
     # Seed default categories if the table is empty
     default_categories = [
@@ -299,25 +313,41 @@ async def telegram_webhook(payload: dict):
         elif command == "/budget":
             reply_text = "Not yet implemented."
         elif command == "/subs":
+            # 1. Auto-charge any subscriptions that are due
             with Session(engine) as session:
-                rules = session.exec(
-                    select(RecurringRule)
-                    .where(RecurringRule.is_active == True)
-                    .order_by(RecurringRule.next_due_date)
-                ).all()
-                rules_payload = [
-                    {
-                        "name": r.name,
-                        "amount": r.amount,
-                        "category_name": (
-                            session.get(Category, r.category_id).name
-                            if r.category_id else "Other"
-                        ),
-                        "next_due_date": r.next_due_date,
-                    }
-                    for r in rules
-                ]
-            reply_text = format_subs_list(rules_payload)
+                charged = process_recurring_expenses(session)
+
+            # 2. Send one notification per charged subscription
+            _subs_api_url = f"https://api.telegram.org/bot{telegram_token}/sendMessage"
+            async with httpx.AsyncClient(timeout=15) as _subs_client:
+                for item in charged:
+                    _msg = f"\U0001f4c5 Auto-charged: {item['name']} — {item['amount']:.2f} JOD added to today's expenses."
+                    await _subs_client.post(_subs_api_url, json={"chat_id": chat_id, "text": _msg})
+
+                # 3. Fetch the current subscription list and send it
+                with Session(engine) as session:
+                    rules = session.exec(
+                        select(RecurringRule)
+                        .where(RecurringRule.is_active == True)
+                        .order_by(RecurringRule.next_due_date)
+                    ).all()
+                    rules_payload = [
+                        {
+                            "name": r.name,
+                            "amount": r.amount,
+                            "category_name": (
+                                session.get(Category, r.category_id).name
+                                if r.category_id else "Other"
+                            ),
+                            "next_due_date": r.next_due_date,
+                        }
+                        for r in rules
+                    ]
+                list_text = format_subs_list(rules_payload)
+                resp = await _subs_client.post(_subs_api_url, json={"chat_id": chat_id, "text": list_text})
+                resp.raise_for_status()
+
+            return {"ok": True}
         elif command == "/addsubscription":
             conversation_state[chat_id] = {"step": "addsub_name", "data": {}}
             reply_text = "What's the subscription name?"

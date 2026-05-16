@@ -75,6 +75,7 @@ def get_budget_status(
             status = "on_track"
 
         results.append({
+            "budget_id": budget.id,
             "category": CategoryRead.model_validate(category),
             "monthly_limit": budget.monthly_limit,
             "spent": spent,

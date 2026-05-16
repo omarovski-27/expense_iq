@@ -30,6 +30,7 @@ export interface Budget {
 }
 
 export interface BudgetStatus {
+  budget_id: number;
   category: Category;
   monthly_limit: number;
   spent: number;

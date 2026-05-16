@@ -7,7 +7,6 @@ from models import Expense, RecurringRule
 
 
 def _advance_date(current: date, frequency: str) -> date:
-    """Advance a date by one period based on frequency."""
     if frequency == "daily":
         return current + timedelta(days=1)
     elif frequency == "weekly":
@@ -16,24 +15,22 @@ def _advance_date(current: date, frequency: str) -> date:
         return current + relativedelta(months=1)
     elif frequency == "yearly":
         return current + relativedelta(years=1)
-    # Fallback: treat as monthly
     return current + relativedelta(months=1)
 
 
-def process_recurring_expenses(db: Session) -> int:
-    """Check all active recurring rules. For each rule where next_due_date <= today:
-    1. Create a new Expense record:
-       amount=rule.amount, description=rule.name, category_id=rule.category_id,
-       date=rule.next_due_date, is_recurring=True, recurring_id=rule.id
-    2. Update rule.last_run_date = rule.next_due_date
-    3. Advance rule.next_due_date based on frequency:
-       daily: +1 day, weekly: +7 days, monthly: +1 month, yearly: +1 year
-    4. If new next_due_date is still <= today, keep advancing until it's in the future
-    5. Save changes
-    Returns count of expenses created.
+def process_recurring_expenses(db: Session) -> list[dict]:
+    """Check all active recurring rules due today or earlier.
+
+    For each qualifying rule:
+    1. Create an Expense record (is_recurring=True, recurring_id=rule.id)
+    2. Update rule.last_run_date and advance rule.next_due_date
+    3. Skip monthly/yearly rules already charged this calendar month
+
+    Returns a list of {"name": str, "amount": float} for every expense created,
+    so callers can send Telegram notifications.
     """
     today = date.today()
-    count = 0
+    charged: list[dict] = []
 
     rules = db.exec(
         select(RecurringRule)
@@ -42,7 +39,15 @@ def process_recurring_expenses(db: Session) -> int:
     ).all()
 
     for rule in rules:
-        # Process every due date up to and including today
+        # Guard: don't double-charge monthly/yearly rules in the same calendar month
+        if rule.frequency in ("monthly", "yearly"):
+            if (
+                rule.last_run_date
+                and rule.last_run_date.year == today.year
+                and rule.last_run_date.month == today.month
+            ):
+                continue
+
         while rule.next_due_date <= today:
             expense = Expense(
                 amount=rule.amount,
@@ -53,14 +58,14 @@ def process_recurring_expenses(db: Session) -> int:
                 recurring_id=rule.id,
             )
             db.add(expense)
-            count += 1
+            charged.append({"name": rule.name, "amount": rule.amount})
 
             rule.last_run_date = rule.next_due_date
             rule.next_due_date = _advance_date(rule.next_due_date, rule.frequency)
 
         db.add(rule)
 
-    if count:
+    if charged:
         db.commit()
 
-    return count
+    return charged
