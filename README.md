@@ -1,189 +1,49 @@
 # ExpenseIQ
 
-> A powerful, AI-driven personal expense tracker
+AI powered personal expense tracker
 
-[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat&logo=python&logoColor=white)](https://python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.111.0-009688?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![React](https://img.shields.io/badge/React-18.3.0-20232A?style=flat&logo=react&logoColor=61DAFB)](https://react.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.4.0-3178C6?style=flat&logo=typescript&logoColor=white)](https://typescriptlang.org)
-[![SQLite](https://img.shields.io/badge/SQLite-3-003B57?style=flat&logo=sqlite&logoColor=white)](https://sqlite.org)
-[![Claude AI](https://img.shields.io/badge/Powered%20by-Claude%20AI-CC785C?style=flat&logo=anthropic&logoColor=white)](https://anthropic.com)
+## What It Is
 
-## Features
-
-1. **Dashboard** — KPI cards (total spend, budget used %, daily average, top category), 6-month spending trend chart, category donut breakdown, and live AI insight cards
-2. **Expense Tracking** — Full CRUD with sortable/paginated table, category badges, recurring indicators, bulk CSV import, and inline delete confirmation
-3. **AI Insights** — Monthly narrative reports, spending spike detection (warning/critical), actionable recommendations, and a conversational AI chat powered by Claude
-4. **Analytics** — Spending trends over 6 months, per-category breakdowns, top merchant table, and month-over-month comparisons
-5. **Budget Management** — Per-category monthly budgets with circular progress rings, inline limit editing, projected month-end spend, and status badges
-6. **Recurring Expenses** — Rule-based recurring engine (daily/weekly/monthly/yearly) with auto-creation on startup, active toggle, and manual run trigger
-7. **Exports** — Download filtered expenses as CSV or a styled 3-sheet Excel report (Transactions, Summary, Overview)
-8. **Settings** — Category manager (add/edit/delete with expense reassignment), CSV import, data export, currency symbol preference, date format toggle
-9. **Keyboard Shortcuts** — `n` to add expense, `/` to focus search, `Esc` to close modals
-10. **Responsive Sidebar** — Collapses to icon-only at < 768px with hover tooltips
+ExpenseIQ is a full stack personal finance app with a React PWA frontend, FastAPI backend, PostgreSQL database, and a Telegram bot for fire and forget expense capture.
 
 ## Tech Stack
 
-### Backend
+1. Frontend: React, TypeScript, Vite, deployed on Vercel
+2. Backend: FastAPI, Python, deployed on Render
+3. Database: Supabase PostgreSQL
+4. AI: Anthropic Claude API for expense parsing and insights
+5. Bot: Telegram webhook bot for expense capture and queries
+6. Uptime: UptimeRobot keeps Render warm to eliminate cold starts
 
-| Package | Version | Purpose |
-|---------|---------|---------|
-| Python | 3.11+ | Runtime |
-| FastAPI | 0.111.0 | REST API framework |
-| SQLModel | 0.0.18 | ORM (Pydantic + SQLAlchemy) |
-| uvicorn | 0.29.0 | ASGI server |
-| anthropic | 0.86.0+ | Claude AI SDK |
-| pandas | 2.2.0 | Data manipulation + CSV export |
-| openpyxl | 3.1.2 | Excel file generation |
-| python-dotenv | 1.0.0 | `.env` file loading |
-| python-dateutil | 2.9.0 | Recurring date arithmetic |
+## Features
 
-### Frontend
+1. Add expenses via Telegram by typing natural language such as "coffee 2.5 food"
+2. Telegram commands: /today, /week, /month, /help
+3. Dashboard with spending trends, category breakdown, and AI insights
+4. Transactions page with filtering by month, year, and category
+5. Budget tracking per category
+6. Recurring expense rules
+7. CSV and Excel export
+8. PWA installable on iPhone and Android via browser
 
-| Package | Version | Purpose |
-|---------|---------|---------|
-| React | 18.3.0 | UI framework |
-| TypeScript | 5.4.0 | Type safety |
-| Vite | 5.2.0 | Dev server + build tool |
-| Tailwind CSS | 3.4.0 | Utility-first styling |
-| Recharts | 2.12.0 | Charts (area, donut) |
-| Axios | 1.6.0 | HTTP client |
-| React Router | 6.23.0 | Client-side routing |
-| react-hot-toast | 2.4.1 | Toast notifications |
-| date-fns | 3.6.0 | Date utilities |
-| lucide-react | 0.379.0 | Icon set |
+## Architecture
 
-## Getting Started
+1. Frontend on Vercel, auto deploys on git push
+2. Backend on Render free tier, auto deploys on git push
+3. Database on Supabase PostgreSQL, connection via port 6543 pooler
+4. Telegram webhook registered at /webhook/telegram on the Render backend
+5. UptimeRobot pings /health every 5 minutes to keep Render awake
 
-### Prerequisites
+## Local Development
 
-1. Python 3.11+
-2. Node.js 18+
-3. Git
-4. An [Anthropic API key](https://console.anthropic.com)
+1. Backend uses SQLite by default when no DATABASE_URL is set
+2. Frontend connects to localhost:8000
+3. start.bat launches all local services
 
-### Backend Setup
+## Production Environment Variables For Render
 
-```bash
-cd expense-tracker/backend
-python -m venv .venv
-.venv\Scripts\activate          # Windows
-# source .venv/bin/activate     # macOS / Linux
-pip install -r requirements.txt
-```
-
-### Frontend Setup
-
-```bash
-cd expense-tracker/frontend
-npm install
-```
-## Running the App
-
-Open **two terminals** from the project root:
-
-**Terminal 1 — Backend**
-```bash
-cd backend
-.venv\Scripts\activate
-uvicorn main:app --reload --port 8000
-```
-
-**Terminal 2 — Frontend**
-```bash
-cd frontend
-npm run dev
-```
-
-Then open **http://localhost:5173** in your browser.
-
-## Environment Variables
-
-Create a `.env` file at the project root (`expense-tracker/.env`):
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `ANTHROPIC_API_KEY` | Your Anthropic API key (required for AI features) | `sk-ant-api03-...` |
-| `DATABASE_URL` | Path to the SQLite database file | `../data/expenses.db` |
-
-```env
-ANTHROPIC_API_KEY=your_key_here
-DATABASE_URL=../data/expenses.db
-```
-
-> The `.env` file is gitignored. Never commit your API key.
-
-## Project Structure
-
-```
-expense-tracker/
-├── backend/
-│   ├── main.py                    ← FastAPI app entry point
-│   ├── database.py                ← SQLite engine + session
-│   ├── models.py                  ← SQLModel table definitions
-│   ├── routers/
-│   │   ├── expenses.py            ← CRUD for expenses
-│   │   ├── categories.py          ← CRUD for categories
-│   │   ├── budgets.py             ← Budget management
-│   │   ├── recurring.py           ← Recurring expense rules
-│   │   ├── insights.py            ← AI insights endpoints
-│   │   ├── analytics.py           ← Dashboard data endpoints
-│   │   └── exports.py             ← CSV/Excel download endpoints
-│   ├── services/
-│   │   ├── ai_service.py          ← Claude API calls
-│   │   ├── export_service.py      ← CSV/Excel generation
-│   │   └── recurring_service.py   ← Recurring engine
-│   └── requirements.txt
-├── frontend/
-│   ├── src/
-│   │   ├── App.tsx                ← Router setup + keyboard shortcuts
-│   │   ├── components/
-│   │   │   ├── layout/            ← Layout, Sidebar, Header
-│   │   │   ├── charts/            ← SpendingTrendChart, CategoryDonutChart, BudgetProgressBar
-│   │   │   ├── expenses/          ← AddExpenseModal, EditExpenseModal
-│   │   │   └── ai/                ← InsightCard
-│   │   ├── pages/
-│   │   │   ├── Dashboard.tsx
-│   │   │   ├── Transactions.tsx
-│   │   │   ├── Insights.tsx
-│   │   │   ├── Budgets.tsx
-│   │   │   └── Settings.tsx
-│   │   ├── api/                   ← Axios API clients
-│   │   ├── types/                 ← TypeScript interfaces
-│   │   └── utils/
-│   │       └── formatCurrency.ts  ← Shared currency formatter
-│   └── package.json
-├── data/
-│   └── expenses.db                ← Auto-created on first run
-├── .env                           ← API keys (gitignored)
-├── .gitignore
-└── README.md
-```
-## API Documentation
-
-FastAPI generates interactive docs automatically. With the backend running, visit:
-
-1. **Swagger UI** → http://localhost:8000/docs
-2. **ReDoc** → http://localhost:8000/redoc
-3. **Health check** → http://localhost:8000/health
-
-### Key Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/expenses` | List expenses with filters |
-| `POST` | `/api/expenses` | Create expense |
-| `POST` | `/api/expenses/bulk-import` | Import CSV |
-| `GET` | `/api/analytics/summary` | KPI totals |
-| `GET` | `/api/analytics/trends` | 6-month trend data |
-| `POST` | `/api/insights/generate` | Generate AI report |
-| `POST` | `/api/insights/chat` | Chat with AI about finances |
-| `GET` | `/api/exports/csv` | Download CSV export |
-| `GET` | `/api/exports/excel` | Download Excel report |
-| `POST` | `/api/recurring/run` | Trigger recurring expenses |
-
-## License
-
-MIT — see [LICENSE](LICENSE) for details.
-
-*Built with React, FastAPI, SQLite, and Claude AI · ExpenseIQ v1.0.0*
+1. DATABASE_URL
+2. ANTHROPIC_API_KEY
+3. CORS_ORIGINS
+4. TELEGRAM_BOT_TOKEN
+5. TELEGRAM_ALLOWED_USER_ID
