@@ -290,6 +290,7 @@ export default function Budgets() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [recurringRules, setRecurringRules] = useState<RecurringRule[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filterCategoryId, setFilterCategoryId] = useState("");
 
   const [showRecurringModal, setShowRecurringModal] = useState(false);
   const [editingRule, setEditingRule] = useState<RecurringRule | null>(null);
@@ -325,6 +326,14 @@ export default function Budgets() {
   }, [month, year]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  useEffect(() => {
+    if (filterCategoryId) setNewBudgetCategoryId(filterCategoryId);
+  }, [filterCategoryId]);
+
+  const filteredRecurringRules = filterCategoryId
+    ? recurringRules.filter((r) => String(r.category_id) === filterCategoryId)
+    : recurringRules;
 
   async function handleDeleteRule(id: number) {
     await deleteRecurringRule(id);
@@ -391,6 +400,17 @@ export default function Budgets() {
           className="w-full sm:w-auto bg-gray-800 border border-gray-700 text-white text-base rounded-lg px-3 h-11 focus:outline-none focus:border-amber-500"
         >
           {years.map((y) => <option key={y} value={y}>{y}</option>)}
+        </select>
+        <select
+          value={filterCategoryId}
+          onChange={(e) => setFilterCategoryId(e.target.value)}
+          aria-label="Filter by category"
+          className="w-full sm:w-auto bg-gray-800 border border-gray-700 text-white text-base rounded-lg px-3 h-11 focus:outline-none focus:border-amber-500"
+        >
+          <option value="">All categories</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
+          ))}
         </select>
         <span className="text-gray-500 text-sm">{daysRemaining > 0 ? `${daysRemaining} days remaining` : ""}</span>
       </div>
@@ -530,14 +550,16 @@ export default function Budgets() {
           </button>
         </div>
 
-        {recurringRules.length === 0 ? (
+        {filteredRecurringRules.length === 0 ? (
           <div className="p-8 text-center text-gray-500 text-sm">
-            No recurring rules. Click "Add Recurring" to create one.
+            {filterCategoryId
+              ? "No recurring rules in this category."
+              : "No recurring rules. Click \"Add Recurring\" to create one."}
           </div>
         ) : (
           <>
             <div className="md:hidden divide-y divide-gray-700/60">
-              {recurringRules.map((rule) => (
+              {filteredRecurringRules.map((rule) => (
                 <div key={rule.id} className="p-4 space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
@@ -630,7 +652,7 @@ export default function Budgets() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700/60">
-              {recurringRules.map((rule) => (
+              {filteredRecurringRules.map((rule) => (
                 <>
                   <tr key={rule.id} className="text-gray-300 hover:bg-gray-700/30 transition-colors">
                     <td className="px-5 py-3 font-medium text-white">{rule.name}</td>
@@ -715,9 +737,9 @@ export default function Budgets() {
       </div>
 
       {/* -- Recurring Total Summary --------------------------------------- */}
-      {recurringRules.length > 0 && (() => {
-        const activeCount = recurringRules.filter((r) => r.is_active).length;
-        const activeTotal = recurringRules
+      {filteredRecurringRules.length > 0 && (() => {
+        const activeCount = filteredRecurringRules.filter((r) => r.is_active).length;
+        const activeTotal = filteredRecurringRules
           .filter((r) => r.is_active)
           .reduce((s, r) => s + r.amount, 0);
         return (
@@ -725,7 +747,7 @@ export default function Budgets() {
             <div>
               <p className="text-gray-400 text-sm">Monthly Recurring Total</p>
               <p className="text-gray-500 text-xs mt-0.5">
-                {activeCount} of {recurringRules.length} subscriptions active
+                {activeCount} of {filteredRecurringRules.length} subscriptions active
               </p>
             </div>
             <p className="text-amber-400 font-bold text-lg">
