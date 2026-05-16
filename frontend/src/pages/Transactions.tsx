@@ -40,6 +40,7 @@ const MONTHS = [
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
 const PAGE_SIZE = 25;
+const MAX_SPEND_THRESHOLD = 100;
 
 type SortKey = "date" | "amount" | "merchant" | "description";
 type SortDir = "asc" | "desc";
@@ -328,7 +329,7 @@ export default function Transactions() {
         ) : (
           paginated.map((exp) => (
             <div key={exp.id} className="space-y-2">
-              <div className="bg-gray-800 rounded-xl p-4 border border-gray-700 flex justify-between items-start gap-3">
+              <div className={`bg-gray-800 rounded-xl p-4 border flex justify-between items-start gap-3 ${exp.amount > MAX_SPEND_THRESHOLD ? "border-orange-500/60 bg-orange-950/20" : "border-gray-700"}`}>
                 <div className="min-w-0 flex-1">
                   <p className="text-white font-medium truncate">{exp.merchant || exp.description}</p>
                   {exp.merchant && (
@@ -357,7 +358,8 @@ export default function Transactions() {
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-3 flex-shrink-0">
-                  <p className="text-amber-400 font-bold text-base whitespace-nowrap">
+                  <p className={`font-bold text-base whitespace-nowrap flex items-center gap-1 ${exp.amount > MAX_SPEND_THRESHOLD ? "text-orange-400" : "text-amber-400"}`}>
+                    {exp.amount > MAX_SPEND_THRESHOLD && <span title="High spend">⚠️</span>}
                     {formatCurrency(exp.amount, currencySymbol)}
                   </p>
                   <div className="flex items-center gap-2">
@@ -467,7 +469,7 @@ export default function Transactions() {
                 <>
                   <tr
                     key={exp.id}
-                    className="text-gray-300 hover:bg-gray-700/40 transition-colors"
+                    className={`text-gray-300 hover:bg-gray-700/40 transition-colors ${exp.amount > MAX_SPEND_THRESHOLD ? "bg-orange-950/10" : ""}`}
                   >
                     <td className="px-4 py-3 text-gray-400 whitespace-nowrap">
                       {format(parseISO(exp.date), "MMM d, yyyy")}
@@ -491,7 +493,8 @@ export default function Transactions() {
                         <span className="text-gray-600 text-xs">-</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-right font-medium text-white whitespace-nowrap">
+                    <td className={`px-4 py-3 text-right font-medium whitespace-nowrap ${exp.amount > MAX_SPEND_THRESHOLD ? "text-orange-400" : "text-white"}`}>
+                      {exp.amount > MAX_SPEND_THRESHOLD && <span className="mr-1" title="High spend">⚠️</span>}
                       {formatCurrency(exp.amount, currencySymbol)}
                     </td>
                     <td className="px-4 py-3 text-center">

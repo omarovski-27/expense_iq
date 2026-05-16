@@ -17,12 +17,35 @@ def format_help_text() -> str:
         "/today - expenses today\n"
         "/week - expenses this week\n"
         "/month - this month summary\n"
+        "/max - highest single expense this month\n"
+        "/top5 - top 5 expenses this month\n"
         "/budget - budget status\n"
         "/categories - list all categories\n"
         "/subs - list all subscriptions\n"
         "/addsubscription - add a new subscription\n"
         "/removesub - remove a subscription"
     )
+
+
+def format_max_expense(expense: dict | None, target_date: date) -> str:
+    if not expense:
+        return f"No expenses this month for {target_date:%B %Y}."
+    return (
+        f"\U0001f4b8 Highest expense this month: "
+        f"{expense['description']} — {expense['amount']:.2f} JOD "
+        f"({expense['category_name']}) on {expense['date']}"
+    )
+
+
+def format_top5_expenses(expenses: list[dict], target_date: date) -> str:
+    if not expenses:
+        return f"No expenses this month for {target_date:%B %Y}."
+    lines = [f"\U0001f3c6 Top 5 expenses this month:"]
+    for i, exp in enumerate(expenses, 1):
+        lines.append(
+            f"{i}. {exp['description']} — {exp['amount']:.2f} JOD ({exp['category_name']})"
+        )
+    return "\n".join(lines)
 
 
 def format_today_expenses(expenses: list[dict], target_date: date) -> str:

@@ -20,10 +20,12 @@ from services.telegram_service import (
     find_category_id,
     format_confirmation,
     format_help_text,
+    format_max_expense,
     format_month_expenses,
     format_removesub_list,
     format_subs_list,
     format_today_expenses,
+    format_top5_expenses,
     format_week_expenses,
     parse_expense_text,
 )
@@ -312,6 +314,59 @@ async def telegram_webhook(payload: dict):
             reply_text = format_month_expenses(expense_payload, today)
         elif command == "/budget":
             reply_text = "Not yet implemented."
+        elif command == "/max":
+            today = date.today()
+            month_start = date(today.year, today.month, 1)
+            if today.month == 12:
+                next_month_start = date(today.year + 1, 1, 1)
+            else:
+                next_month_start = date(today.year, today.month + 1, 1)
+            with Session(engine) as session:
+                expense_row = session.exec(
+                    select(Expense)
+                    .where(Expense.date >= month_start)
+                    .where(Expense.date < next_month_start)
+                    .order_by(Expense.amount.desc())
+                    .limit(1)
+                ).first()
+                if expense_row:
+                    max_payload = {
+                        "description": expense_row.merchant or expense_row.description,
+                        "amount": expense_row.amount,
+                        "category_name": (
+                            expense_row.category.name if expense_row.category else "Uncategorized"
+                        ),
+                        "date": expense_row.date.strftime("%b %d, %Y"),
+                    }
+                else:
+                    max_payload = None
+            reply_text = format_max_expense(max_payload, today)
+        elif command == "/top5":
+            today = date.today()
+            month_start = date(today.year, today.month, 1)
+            if today.month == 12:
+                next_month_start = date(today.year + 1, 1, 1)
+            else:
+                next_month_start = date(today.year, today.month + 1, 1)
+            with Session(engine) as session:
+                expense_rows = session.exec(
+                    select(Expense)
+                    .where(Expense.date >= month_start)
+                    .where(Expense.date < next_month_start)
+                    .order_by(Expense.amount.desc())
+                    .limit(5)
+                ).all()
+                top5_payload = [
+                    {
+                        "description": e.merchant or e.description,
+                        "amount": e.amount,
+                        "category_name": (
+                            e.category.name if e.category else "Uncategorized"
+                        ),
+                    }
+                    for e in expense_rows
+                ]
+            reply_text = format_top5_expenses(top5_payload, today)
         elif command == "/subs":
             # 1. Auto-charge any subscriptions that are due
             with Session(engine) as session:

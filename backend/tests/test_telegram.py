@@ -449,3 +449,94 @@ class TestWebhookExpenseParsing:
             exps = s.exec(__import__("sqlmodel").select(Expense)).all()
         assert len(exps) == 1
         assert exps[0].amount == 5.0
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# /max command
+# ─────────────────────────────────────────────────────────────────────────────
+
+class TestMaxCommand:
+    def test_max_no_expenses(self, telegram_client, mock_tg):
+        _, text = _post(telegram_client, mock_tg, "/max")
+        assert "no expenses" in text.lower()
+
+    def test_max_returns_highest(self, telegram_client, mock_tg, engine):
+        with Session(engine) as s:
+            s.add(Expense(amount=15.0, description="Cheap", date=date.today()))
+            s.add(Expense(amount=250.0, description="Expensive", date=date.today()))
+            s.add(Expense(amount=40.0, description="Medium", date=date.today()))
+            s.commit()
+        _, text = _post(telegram_client, mock_tg, "/max")
+        assert "250" in text
+        assert "Expensive" in text
+
+    def test_max_includes_category(self, telegram_client, mock_tg, engine):
+        with Session(engine) as s:
+            cats = s.exec(__import__("sqlmodel").select(Category)).all()
+            food_id = next(c.id for c in cats if c.name == "Food")
+            s.add(Expense(amount=180.0, description="BigMeal", date=date.today(), category_id=food_id))
+            s.commit()
+        _, text = _post(telegram_client, mock_tg, "/max")
+        assert "Food" in text
+        assert "180" in text
+
+    def test_max_ignores_previous_month(self, telegram_client, mock_tg, engine):
+        from datetime import date as date_cls
+        today = date_cls.today()
+        prev_month = date_cls(today.year if today.month > 1 else today.year - 1,
+                              today.month - 1 if today.month > 1 else 12, 1)
+        with Session(engine) as s:
+            s.add(Expense(amount=999.0, description="OldExpense", date=prev_month))
+            s.commit()
+        _, text = _post(telegram_client, mock_tg, "/max")
+        assert "no expenses" in text.lower()
+
+    def test_max_in_help(self, telegram_client, mock_tg):
+        _, text = _post(telegram_client, mock_tg, "/help")
+        assert "/max" in text
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# /top5 command
+# ─────────────────────────────────────────────────────────────────────────────
+
+class TestTop5Command:
+    def test_top5_no_expenses(self, telegram_client, mock_tg):
+        _, text = _post(telegram_client, mock_tg, "/top5")
+        assert "no expenses" in text.lower()
+
+    def test_top5_returns_sorted_by_amount(self, telegram_client, mock_tg, engine):
+        with Session(engine) as s:
+            for i, amount in enumerate([10.0, 50.0, 30.0, 20.0, 40.0], 1):
+                s.add(Expense(amount=amount, description=f"Exp{i}", date=date.today()))
+            s.commit()
+        _, text = _post(telegram_client, mock_tg, "/top5")
+        assert "50" in text
+        assert "40" in text
+        # verify descending order: 50 appears before 10
+        assert text.index("50") < text.index("10")
+
+    def test_top5_limited_to_5(self, telegram_client, mock_tg, engine):
+        with Session(engine) as s:
+            for i in range(8):
+                s.add(Expense(amount=float(i + 1) * 10, description=f"Item{i}", date=date.today()))
+            s.commit()
+        _, text = _post(telegram_client, mock_tg, "/top5")
+        # Only 5 numbered entries
+        assert "1." in text
+        assert "5." in text
+        assert "6." not in text
+
+    def test_top5_fewer_than_5(self, telegram_client, mock_tg, engine):
+        with Session(engine) as s:
+            s.add(Expense(amount=100.0, description="Only", date=date.today()))
+            s.add(Expense(amount=50.0, description="Two", date=date.today()))
+            s.commit()
+        _, text = _post(telegram_client, mock_tg, "/top5")
+        assert "1." in text
+        assert "2." in text
+        assert "3." not in text
+
+    def test_top5_in_help(self, telegram_client, mock_tg):
+        _, text = _post(telegram_client, mock_tg, "/help")
+        assert "/top5" in text

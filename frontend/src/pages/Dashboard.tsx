@@ -44,6 +44,8 @@ function SkeletonBlock({ className = "" }: { className?: string }) {
 // Dashboard
 // ---------------------------------------------------------------------------
 
+const MAX_SPEND_THRESHOLD = 100;
+
 export default function Dashboard() {
   const now = new Date();
   const month = now.getMonth() + 1;
@@ -261,7 +263,7 @@ export default function Dashboard() {
                 {expenses.map((exp) => (
                   <div
                     key={exp.id}
-                    className="border-b border-gray-700 py-3 flex items-start justify-between gap-3 last:border-b-0"
+                    className={`border-b border-gray-700 py-3 flex items-start justify-between gap-3 last:border-b-0 ${exp.amount > MAX_SPEND_THRESHOLD ? "bg-orange-950/10 rounded-lg px-1" : ""}`}
                   >
                     <div className="min-w-0 flex-1">
                       <p className="text-white text-sm font-medium truncate">
@@ -282,7 +284,8 @@ export default function Dashboard() {
                       )}
                     </div>
                     <div className="shrink-0 text-right">
-                      <p className="text-amber-400 font-medium text-sm">
+                      <p className={`font-medium text-sm flex items-center justify-end gap-1 ${exp.amount > MAX_SPEND_THRESHOLD ? "text-orange-400" : "text-amber-400"}`}>
+                        {exp.amount > MAX_SPEND_THRESHOLD && <span title="High spend">⚠️</span>}
                         {formatCurrency(exp.amount, currencySymbol)}
                       </p>
                       <p className="text-gray-500 text-xs mt-1">
@@ -304,7 +307,7 @@ export default function Dashboard() {
                 </thead>
                 <tbody className="divide-y divide-gray-700">
                   {expenses.map((exp) => (
-                    <tr key={exp.id} className="text-gray-300">
+                    <tr key={exp.id} className={`text-gray-300 ${exp.amount > MAX_SPEND_THRESHOLD ? "bg-orange-950/10" : ""}`}>
                       <td className="py-2 text-gray-400 whitespace-nowrap">
                         {format(parseISO(exp.date), "MMM d")}
                       </td>
@@ -324,7 +327,8 @@ export default function Dashboard() {
                           </span>
                         )}
                       </td>
-                      <td className="py-2 text-right font-medium text-white">
+                      <td className={`py-2 text-right font-medium ${exp.amount > MAX_SPEND_THRESHOLD ? "text-orange-400" : "text-white"}`}>
+                        {exp.amount > MAX_SPEND_THRESHOLD && <span className="mr-1" title="High spend">⚠️</span>}
                         {formatCurrency(exp.amount, currencySymbol)}
                       </td>
                     </tr>

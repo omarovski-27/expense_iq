@@ -41,6 +41,14 @@ const MOCK_EXPENSE = {
   updated_at: "2026-05-10T00:00:00Z",
 };
 
+const HIGH_EXPENSE = {
+  ...MOCK_EXPENSE,
+  id: 2,
+  amount: 250.0,
+  description: "Big Purchase",
+  merchant: "Electronics Store",
+};
+
 describe("Transactions page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -88,6 +96,23 @@ describe("Transactions page", () => {
 
     await waitFor(() => {
       expect(mockGetExpenses).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it("shows warning icon for expenses above threshold", async () => {
+    mockGetExpenses.mockResolvedValue([HIGH_EXPENSE]);
+    render(<Transactions />);
+    await waitFor(() => {
+      const warnings = screen.getAllByTitle("High spend");
+      expect(warnings.length).toBeGreaterThan(0);
+    });
+  });
+
+  it("does not show warning icon for normal expenses", async () => {
+    mockGetExpenses.mockResolvedValue([MOCK_EXPENSE]);
+    render(<Transactions />);
+    await waitFor(() => {
+      expect(screen.queryByTitle("High spend")).toBeNull();
     });
   });
 

@@ -332,7 +332,7 @@ export default function Budgets() {
   }, [filterCategoryId]);
 
   const filteredRecurringRules = filterCategoryId
-    ? recurringRules.filter((r) => String(r.category_id) === filterCategoryId)
+    ? recurringRules.filter((r) => r.category_id === Number(filterCategoryId))
     : recurringRules;
 
   async function handleDeleteRule(id: number) {
