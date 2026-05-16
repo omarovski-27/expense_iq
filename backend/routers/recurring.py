@@ -111,6 +111,7 @@ def delete_recurring(rule_id: int, session: Session = Depends(get_session)):
 @router.post("/run")
 def run_recurring(session: Session = Depends(get_session)):
     from services.recurring_service import process_recurring_expenses
-    count = process_recurring_expenses(session)
-    return {"message": f"Created {count} expense(s) from recurring rules", "created": count}
+    charged = process_recurring_expenses(session)
+    n = len(charged)
+    return {"message": f"Created {n} expense(s) from recurring rules", "created": n}
 
