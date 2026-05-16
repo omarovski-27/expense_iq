@@ -18,7 +18,7 @@ ExpenseIQ is a full stack personal finance app with a React PWA frontend, FastAP
 ## Features
 
 1. Add expenses via Telegram by typing natural language such as "coffee 2.5 food"
-2. Telegram commands: /today, /week, /month, /help
+2. Telegram commands: /today, /week, /month, /budget, /categories, /subs, /addsubscription, /removesub, /help
 3. Dashboard with spending trends, category breakdown, and AI insights
 4. Transactions page with filtering by month, year, and category
 5. Budget tracking per category
