@@ -666,7 +666,7 @@ pause
    Root Directory: backend
    Runtime: Python 3
    Build Command: pip install -r requirements.txt
-   Start Command: python telegram_bot.py
+   Start Command:   
    Instance Type: Free
 4. Environment variables:
    DATABASE_URL → Supabase URL
