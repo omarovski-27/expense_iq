@@ -12,13 +12,16 @@ from fastapi.responses import JSONResponse
 from sqlmodel import Session, select
 
 from database import create_db_and_tables, engine
-from models import Category, Expense
+from models import Category, Expense, RecurringRule
 from routers import analytics, budgets, categories, expenses, exports, health, insights, recurring
 from services.telegram_service import (
     build_expense_payload,
+    find_category_id,
     format_confirmation,
     format_help_text,
     format_month_expenses,
+    format_removesub_list,
+    format_subs_list,
     format_today_expenses,
     format_week_expenses,
     parse_expense_text,
@@ -117,6 +120,78 @@ def health_check_head():
     return Response(status_code=200)
 
 
+conversation_state: dict[int, dict] = {}
+
+
+async def _handle_conversation(chat_id: int, text: str, step: str, data: dict, state_dict: dict) -> str:
+    if step == "addsub_name":
+        data["name"] = text.strip()
+        state_dict[chat_id]["step"] = "addsub_amount"
+        return "How much? (JOD)"
+
+    if step == "addsub_amount":
+        try:
+            amount = float(text.strip().replace(",", "."))
+            assert amount > 0
+        except (ValueError, AssertionError):
+            return "Invalid amount. Please enter a positive number (e.g. 14.7):"
+        data["amount"] = amount
+        state_dict[chat_id]["step"] = "addsub_category"
+        return "Category? (bills / entertainment / health / other)"
+
+    if step == "addsub_category":
+        with Session(engine) as session:
+            category_rows = session.exec(select(Category).order_by(Category.name)).all()
+            cats = [{"id": c.id, "name": c.name} for c in category_rows]
+        cat_id, cat_name = find_category_id(text.strip(), cats)
+        data["category_id"] = cat_id
+        data["category_name"] = cat_name
+        state_dict[chat_id]["step"] = "addsub_date"
+        return "Next due date? (DD/MM/YYYY)"
+
+    if step == "addsub_date":
+        from datetime import datetime as dt_
+        try:
+            due_date = dt_.strptime(text.strip(), "%d/%m/%Y").date()
+        except ValueError:
+            return "Invalid date. Please use DD/MM/YYYY (e.g. 01/06/2026):"
+        with Session(engine) as session:
+            rule = RecurringRule(
+                name=data["name"],
+                amount=data["amount"],
+                category_id=data["category_id"],
+                frequency="monthly",
+                next_due_date=due_date,
+            )
+            session.add(rule)
+            session.commit()
+        del state_dict[chat_id]
+        return (
+            f"Saved! {data['name']} - {data['amount']:.2f} JOD "
+            f"({data['category_name']}) due {due_date:%d/%m/%Y}.\n"
+            "/subs to see all subscriptions."
+        )
+
+    if step == "removesub_pick":
+        rules = data["rules"]
+        try:
+            idx = int(text.strip()) - 1
+            assert 0 <= idx < len(rules)
+        except (ValueError, AssertionError):
+            return f"Please reply with a number between 1 and {len(rules)}."
+        chosen = rules[idx]
+        with Session(engine) as session:
+            rule = session.get(RecurringRule, chosen["id"])
+            if rule:
+                session.delete(rule)
+                session.commit()
+        del state_dict[chat_id]
+        return f"Removed: {chosen['name']}.\n/subs to see remaining subscriptions."
+
+    del state_dict[chat_id]
+    return "Something went wrong. Please try again."
+
+
 @app.post("/webhook/telegram")
 async def telegram_webhook(payload: dict):
     telegram_token = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -137,6 +212,15 @@ async def telegram_webhook(payload: dict):
     chat = message.get("chat") or {}
     chat_id = chat.get("id")
     if not message_text or chat_id is None:
+        return {"ok": True}
+
+    if chat_id in conversation_state and not message_text.startswith("/"):
+        state = conversation_state[chat_id]
+        reply_text = await _handle_conversation(chat_id, message_text, state["step"], state["data"], conversation_state)
+        api_url = f"https://api.telegram.org/bot{telegram_token}/sendMessage"
+        async with httpx.AsyncClient(timeout=15) as client:
+            resp = await client.post(api_url, json={"chat_id": chat_id, "text": reply_text})
+            resp.raise_for_status()
         return {"ok": True}
 
     command = message_text.split()[0].lower()
@@ -214,6 +298,50 @@ async def telegram_webhook(payload: dict):
             reply_text = format_month_expenses(expense_payload, today)
         elif command == "/budget":
             reply_text = "Not yet implemented."
+        elif command == "/subs":
+            with Session(engine) as session:
+                rules = session.exec(
+                    select(RecurringRule)
+                    .where(RecurringRule.is_active == True)
+                    .order_by(RecurringRule.next_due_date)
+                ).all()
+                rules_payload = [
+                    {
+                        "name": r.name,
+                        "amount": r.amount,
+                        "category_name": (
+                            session.get(Category, r.category_id).name
+                            if r.category_id else "Other"
+                        ),
+                        "next_due_date": r.next_due_date,
+                    }
+                    for r in rules
+                ]
+            reply_text = format_subs_list(rules_payload)
+        elif command == "/addsubscription":
+            conversation_state[chat_id] = {"step": "addsub_name", "data": {}}
+            reply_text = "What's the subscription name?"
+        elif command == "/removesub":
+            with Session(engine) as session:
+                rules = session.exec(
+                    select(RecurringRule)
+                    .where(RecurringRule.is_active == True)
+                    .order_by(RecurringRule.next_due_date)
+                ).all()
+                rules_payload = [
+                    {
+                        "id": r.id,
+                        "name": r.name,
+                        "amount": r.amount,
+                        "next_due_date": r.next_due_date,
+                    }
+                    for r in rules
+                ]
+            if not rules_payload:
+                reply_text = "No subscriptions to remove."
+            else:
+                conversation_state[chat_id] = {"step": "removesub_pick", "data": {"rules": rules_payload}}
+                reply_text = format_removesub_list(rules_payload)
         else:
             reply_text = format_help_text()
 

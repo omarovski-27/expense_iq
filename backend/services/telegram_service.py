@@ -18,7 +18,10 @@ def format_help_text() -> str:
         "/week - expenses this week\n"
         "/month - this month summary\n"
         "/budget - budget status\n"
-        "/categories - list all categories"
+        "/categories - list all categories\n"
+        "/subs - list all subscriptions\n"
+        "/addsubscription - add a new subscription\n"
+        "/removesub - remove a subscription"
     )
 
 
@@ -183,3 +186,24 @@ def format_confirmation(parsed: dict, target_date: date) -> str:
         f"{today_display(target_date)}\n\n"
         "/today to see all expenses today"
     )
+
+
+def format_subs_list(rules: list[dict]) -> str:
+    if not rules:
+        return "No subscriptions found. Use /addsubscription to add one."
+    lines = ["Subscriptions (sorted by due date):"]
+    for r in rules:
+        due = r["next_due_date"]
+        due_str = f"{due:%d/%m/%Y}" if hasattr(due, "strftime") else str(due)
+        lines.append(f"- {r['name']}: {r['amount']:.2f} JD | {r['category_name']} | due {due_str}")
+    return "\n".join(lines)
+
+
+def format_removesub_list(rules: list[dict]) -> str:
+    lines = ["Your subscriptions:"]
+    for i, r in enumerate(rules, 1):
+        due = r["next_due_date"]
+        due_str = f"{due:%d/%m/%Y}" if hasattr(due, "strftime") else str(due)
+        lines.append(f"{i}. {r['name']} - {r['amount']:.2f} JD (due {due_str})")
+    lines.append("\nReply with a number to remove it.")
+    return "\n".join(lines)
