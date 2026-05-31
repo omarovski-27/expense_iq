@@ -11,7 +11,7 @@ interface GetInsightsParams {
 export async function getInsights(
   params: GetInsightsParams = {}
 ): Promise<AIInsight[]> {
-  const { data } = await client.get<AIInsight[]>("/insights", { params });
+  const { data } = await client.get<AIInsight[]>("/insights/", { params });
   return data;
 }
 

@@ -183,7 +183,8 @@ async def bulk_import(
             continue
 
         date_raw = row.get("date", "").strip()
-        parsed_date = _parse_date(date_raw) if date_raw else date.today()
+        from tz import today_jordan
+        parsed_date = _parse_date(date_raw) if date_raw else today_jordan()
         if parsed_date is None:
             skipped += 1
             continue

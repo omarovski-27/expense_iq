@@ -53,6 +53,7 @@ export default function Dashboard() {
   const { currencySymbol } = useCurrency();
 
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
   const [trends, setTrends] = useState<SpendingTrend[]>([]);
   const [breakdown, setBreakdown] = useState<CategoryBreakdown[]>([]);
@@ -61,9 +62,10 @@ export default function Dashboard() {
   const [insights, setInsights] = useState<AIInsight[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
 
-  async function fetchAll() {
+  async function fetchAll(retryCount = 0) {
+    setError(null);
     try {
-      const [s, t, cb, bs, e, i] = await Promise.all([
+      const results = await Promise.allSettled([
         getSummary(month, year),
         getTrends(),
         getCategoryBreakdown(month, year),
@@ -71,12 +73,29 @@ export default function Dashboard() {
         getExpenses({ month, year, limit: 10 }),
         getInsights({ limit: 3 }),
       ]);
-      setSummary(s);
-      setTrends(t);
-      setBreakdown(cb);
-      setBudgetStatus(bs);
-      setExpenses(e);
-      setInsights(i);
+
+      const allFailed = results.every((r) => r.status === "rejected");
+      if (allFailed) {
+        if (retryCount < 2) {
+          await new Promise((r) => setTimeout(r, 2000));
+          return fetchAll(retryCount + 1);
+        }
+        setError("Cannot reach server. Make sure the backend is running.");
+        return;
+      }
+
+      if (results[0].status === "fulfilled") setSummary(results[0].value);
+      if (results[1].status === "fulfilled") setTrends(results[1].value);
+      if (results[2].status === "fulfilled") setBreakdown(results[2].value);
+      if (results[3].status === "fulfilled") setBudgetStatus(results[3].value);
+      if (results[4].status === "fulfilled") setExpenses(results[4].value);
+      if (results[5].status === "fulfilled") setInsights(results[5].value);
+    } catch {
+      if (retryCount < 2) {
+        await new Promise((r) => setTimeout(r, 2000));
+        return fetchAll(retryCount + 1);
+      }
+      setError("Cannot reach server. Make sure the backend is running.");
     } finally {
       setLoading(false);
     }
@@ -114,6 +133,18 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
+
+      {error && (
+        <div className="bg-red-900/50 border border-red-700 rounded-xl p-4 flex items-center justify-between">
+          <p className="text-red-300 text-sm">{error}</p>
+          <button
+            onClick={() => { setLoading(true); fetchAll(); }}
+            className="px-4 py-1.5 bg-red-700 hover:bg-red-600 text-white text-sm rounded-lg transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* ------------------------------------------------------------------ */}
       {/* SECTION 1 — KPI Row                                                 */}

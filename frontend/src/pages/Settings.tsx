@@ -387,13 +387,13 @@ export default function Settings() {
           Data Management
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
           <button
             onClick={handleExportCSV}
             className="flex items-center justify-center gap-2 px-4 h-11 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded-lg border border-gray-600 transition-colors touch-manipulation"
           >
             <Download size={16} className="text-green-400" />
-            Export All Data (CSV)
+            Export CSV
           </button>
 
           <button
@@ -401,12 +401,12 @@ export default function Settings() {
             className="flex items-center justify-center gap-2 px-4 h-11 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded-lg border border-gray-600 transition-colors touch-manipulation"
           >
             <Download size={16} className="text-blue-400" />
-            Export Excel Report
+            Export Excel
           </button>
 
           <button
             onClick={() => importRef.current?.click()}
-            className="flex items-center justify-center gap-2 px-4 h-11 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded-lg border border-gray-600 transition-colors touch-manipulation"
+            className="flex items-center justify-center gap-2 px-4 h-11 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded-lg border border-gray-600 transition-colors touch-manipulation col-span-full"
           >
             <Upload size={16} className="text-amber-400" />
             Import CSV

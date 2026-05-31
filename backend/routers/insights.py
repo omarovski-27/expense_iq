@@ -1,5 +1,7 @@
 from datetime import date
 import os
+
+from tz import today_jordan
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -95,7 +97,7 @@ def get_spikes(
     year: Optional[int] = None,
     session: Session = Depends(get_session),
 ):
-    today = date.today()
+    today = today_jordan()
     m = month if month is not None else today.month
     y = year if year is not None else today.year
     return detect_spikes(m, y, session)
@@ -111,7 +113,7 @@ async def monthly_report(
     year: Optional[int] = None,
     session: Session = Depends(get_session),
 ):
-    today = date.today()
+    today = today_jordan()
     m = month if month is not None else today.month
     y = year if year is not None else today.year
 

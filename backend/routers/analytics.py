@@ -1,6 +1,8 @@
 import logging
 from calendar import monthrange
 from datetime import date
+
+from tz import today_jordan
 from typing import Optional
 
 from dateutil.relativedelta import relativedelta
@@ -33,7 +35,7 @@ def get_summary(
     session: Session = Depends(get_session),
 ):
     try:
-        today = date.today()
+        today = today_jordan()
         m = month or today.month
         y = year or today.year
 
@@ -103,7 +105,7 @@ def get_summary(
 @router.get("/trends")
 def get_trends(session: Session = Depends(get_session)):
     try:
-        today = date.today()
+        today = today_jordan()
         results = []
         for i in range(5, -1, -1):
             d = date(today.year, today.month, 1) - relativedelta(months=i)
@@ -134,7 +136,7 @@ def get_category_breakdown(
     session: Session = Depends(get_session),
 ):
     try:
-        today = date.today()
+        today = today_jordan()
         m = month or today.month
         y = year or today.year
 
@@ -179,7 +181,7 @@ def get_merchant_breakdown(
     session: Session = Depends(get_session),
 ):
     try:
-        today = date.today()
+        today = today_jordan()
         m = month or today.month
         y = year or today.year
 

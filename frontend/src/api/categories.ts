@@ -2,14 +2,14 @@ import client from "./client";
 import type { Category } from "../types";
 
 export async function getCategories(): Promise<Category[]> {
-  const { data } = await client.get<Category[]>("/categories");
+  const { data } = await client.get<Category[]>("/categories/");
   return data;
 }
 
 export async function createCategory(
   data: Omit<Category, "id" | "created_at">
 ): Promise<Category> {
-  const { data: category } = await client.post<Category>("/categories", data);
+  const { data: category } = await client.post<Category>("/categories/", data);
   return category;
 }
 

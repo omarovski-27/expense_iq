@@ -29,6 +29,7 @@ from services.telegram_service import (
     format_week_expenses,
     parse_expense_text,
 )
+from tz import today_jordan as _today_jordan
 
 
 logging.basicConfig(level=logging.INFO)
@@ -48,27 +49,6 @@ if "http://localhost:5173" not in cors_origins:
 async def lifespan(app: FastAPI):
     # Create tables
     create_db_and_tables()
-
-    # Process any recurring expenses that became due and notify via Telegram
-    with Session(engine) as recurring_session:
-        try:
-            charged = process_recurring_expenses(recurring_session)
-        except Exception:
-            logger.exception("Recurring expenses processing failed on startup")
-            charged = []
-
-    if charged:
-        _telegram_token = os.getenv("TELEGRAM_BOT_TOKEN")
-        _chat_id_str = os.getenv("TELEGRAM_ALLOWED_USER_ID")
-        if _telegram_token and _chat_id_str:
-            _api_url = f"https://api.telegram.org/bot{_telegram_token}/sendMessage"
-            async with httpx.AsyncClient(timeout=15) as _client:
-                for item in charged:
-                    _msg = f"\U0001f4c5 Auto-charged: {item['name']} — {item['amount']:.2f} JOD added to today's expenses."
-                    try:
-                        await _client.post(_api_url, json={"chat_id": int(_chat_id_str), "text": _msg})
-                    except Exception:
-                        logger.exception("Failed to send Telegram startup notification for %s", item["name"])
 
     # Seed default categories if the table is empty
     default_categories = [
@@ -90,6 +70,27 @@ async def lifespan(app: FastAPI):
             for name, color, icon in default_categories:
                 session.add(Category(name=name, color=color, icon=icon))
             session.commit()
+
+    # Process any recurring expenses that became due and notify via Telegram
+    with Session(engine) as recurring_session:
+        try:
+            charged = process_recurring_expenses(recurring_session)
+        except Exception:
+            logger.exception("Recurring expenses processing failed on startup")
+            charged = []
+
+    if charged:
+        _telegram_token = os.getenv("TELEGRAM_BOT_TOKEN")
+        _chat_id_str = os.getenv("TELEGRAM_ALLOWED_USER_ID")
+        if _telegram_token and _chat_id_str:
+            _api_url = f"https://api.telegram.org/bot{_telegram_token}/sendMessage"
+            async with httpx.AsyncClient(timeout=15) as _client:
+                for item in charged:
+                    _msg = f"\U0001f4c5 Auto-charged: {item['name']} — {item['amount']:.2f} JOD added to today's expenses."
+                    try:
+                        await _client.post(_api_url, json={"chat_id": int(_chat_id_str), "text": _msg})
+                    except Exception:
+                        logger.exception("Failed to send Telegram startup notification for %s", item["name"])
 
     yield  # app runs here
 
@@ -244,7 +245,7 @@ async def telegram_webhook(payload: dict):
         if command in {"/help", "/categories"}:
             reply_text = format_help_text()
         elif command == "/today":
-            today = date.today()
+            today = _today_jordan()
             with Session(engine) as session:
                 expense_rows = session.exec(
                     select(Expense)
@@ -264,7 +265,7 @@ async def telegram_webhook(payload: dict):
                 ]
             reply_text = format_today_expenses(expense_payload, today)
         elif command == "/week":
-            today = date.today()
+            today = _today_jordan()
             week_start = today - timedelta(days=today.weekday())
             with Session(engine) as session:
                 expense_rows = session.exec(
@@ -286,7 +287,7 @@ async def telegram_webhook(payload: dict):
                 ]
             reply_text = format_week_expenses(expense_payload, today)
         elif command == "/month":
-            today = date.today()
+            today = _today_jordan()
             month_start = date(today.year, today.month, 1)
             if today.month == 12:
                 next_month_start = date(today.year + 1, 1, 1)
@@ -315,7 +316,7 @@ async def telegram_webhook(payload: dict):
         elif command == "/budget":
             reply_text = "Not yet implemented."
         elif command == "/max":
-            today = date.today()
+            today = _today_jordan()
             month_start = date(today.year, today.month, 1)
             if today.month == 12:
                 next_month_start = date(today.year + 1, 1, 1)
@@ -342,7 +343,7 @@ async def telegram_webhook(payload: dict):
                     max_payload = None
             reply_text = format_max_expense(max_payload, today)
         elif command == "/top5":
-            today = date.today()
+            today = _today_jordan()
             month_start = date(today.year, today.month, 1)
             if today.month == 12:
                 next_month_start = date(today.year + 1, 1, 1)
@@ -448,7 +449,7 @@ async def telegram_webhook(payload: dict):
         if parsed is None:
             reply_text = format_help_text()
         else:
-            today = date.today()
+            today = _today_jordan()
             expense_data = build_expense_payload(parsed, today)
             expense = Expense.model_validate(expense_data)
             session.add(expense)

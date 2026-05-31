@@ -4,6 +4,7 @@ from dateutil.relativedelta import relativedelta
 from sqlmodel import Session, select
 
 from models import Expense, RecurringRule
+from tz import today_jordan as _today_jordan
 
 
 def _advance_date(current: date, frequency: str) -> date:
@@ -29,7 +30,7 @@ def process_recurring_expenses(db: Session) -> list[dict]:
     Returns a list of {"name": str, "amount": float} for every expense created,
     so callers can send Telegram notifications.
     """
-    today = date.today()
+    today = _today_jordan()
     charged: list[dict] = []
 
     rules = db.exec(

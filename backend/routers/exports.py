@@ -65,9 +65,9 @@ def download_excel(
     year: Optional[int] = None,
     session: Session = Depends(get_session),
 ):
-    from datetime import date as _date
+    from tz import today_jordan
 
-    today = _date.today()
+    today = today_jordan()
     m = month if month is not None else today.month
     y = year if year is not None else today.year
 

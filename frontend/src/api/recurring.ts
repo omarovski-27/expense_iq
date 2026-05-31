@@ -15,14 +15,14 @@ export async function getRecurringRules(
   year?: number,
 ): Promise<RecurringRule[]> {
   const params = month !== undefined && year !== undefined ? { month, year } : undefined;
-  const { data } = await client.get<RecurringRule[]>("/recurring", { params });
+  const { data } = await client.get<RecurringRule[]>("/recurring/", { params });
   return data;
 }
 
 export async function createRecurringRule(
   data: RecurringRuleCreate
 ): Promise<RecurringRule> {
-  const { data: rule } = await client.post<RecurringRule>("/recurring", data);
+  const { data: rule } = await client.post<RecurringRule>("/recurring/", data);
   return rule;
 }
 

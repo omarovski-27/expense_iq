@@ -1,5 +1,7 @@
 from calendar import monthrange
 from datetime import date
+
+from tz import today_jordan
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -28,7 +30,7 @@ def get_budget_status(
     year: Optional[int] = None,
     session: Session = Depends(get_session),
 ):
-    today = date.today()
+    today = today_jordan()
     m = month or today.month
     y = year or today.year
 

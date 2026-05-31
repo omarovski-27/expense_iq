@@ -11,14 +11,14 @@ interface GetExpensesParams {
 }
 
 export async function getExpenses(params: GetExpensesParams = {}): Promise<Expense[]> {
-  const { data } = await client.get<Expense[]>("/expenses", { params });
+  const { data } = await client.get<Expense[]>("/expenses/", { params });
   return data;
 }
 
 export async function createExpense(
   data: Omit<Expense, "id" | "created_at" | "updated_at" | "category">
 ): Promise<Expense> {
-  const { data: expense } = await client.post<Expense>("/expenses", data);
+  const { data: expense } = await client.post<Expense>("/expenses/", data);
   return expense;
 }
 

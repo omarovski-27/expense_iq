@@ -238,7 +238,8 @@ async def generate_monthly_insights(month: int, year: int, db: Session) -> list[
 # ─────────────────────────────────────────────────────────────────────────────
 
 async def chat_with_finances(question: str, db: Session) -> str:
-    today = date.today()
+    from tz import today_jordan
+    today = today_jordan()
     month, year = today.month, today.year
 
     categories = {c.id: c for c in db.exec(select(Category)).all()}
