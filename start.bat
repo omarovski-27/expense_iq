@@ -7,11 +7,16 @@ echo.
 echo Your expenses live in the cloud (where the Telegram bot saves them).
 echo This window just opens your dashboard to view them.
 echo.
-echo [1/2] Waking up the cloud server...
-echo       (can take up to a minute if it has been idle)
-curl -s --max-time 90 -o nul -w "      Server responded: HTTP %%{http_code}\n" https://expense-iq-ypan.onrender.com/health
+echo Starting your dashboard...
 echo.
-echo [2/2] Opening your dashboard...
+
+REM Wake the cloud in the BACKGROUND so it warms while the dashboard boots.
+REM We do NOT wait for it - the dashboard retries on its own if the server
+REM is still waking. With the keep-warm job running it is usually already
+REM awake, so there is nothing to wait for.
+start "" /B curl -s --max-time 90 -o nul https://expense-iq-ypan.onrender.com/health
+
+REM Launch the dashboard and open it in the browser right away.
 start "ExpenseIQ Frontend" cmd /k "cd /d %~dp0frontend && npm run dev -- --host"
 timeout /t 4 /nobreak > nul
 start "" "http://localhost:5173"
