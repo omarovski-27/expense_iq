@@ -70,3 +70,45 @@ def process_recurring_expenses(db: Session) -> list[dict]:
         db.commit()
 
     return charged
+
+
+# Fields a caller (Telegram bot or HTTP router) is allowed to patch on a rule.
+_RULE_EDITABLE_FIELDS = ("name", "amount", "category_id", "frequency", "next_due_date")
+
+
+def update_recurring_fields(db: Session, rule_id: int, **fields) -> RecurringRule | None:
+    """Patch a recurring rule in place.
+
+    Only keys in ``_RULE_EDITABLE_FIELDS`` whose value is not None are applied,
+    so callers can pass just the fields they want to change (e.g. amount only).
+    Returns the updated rule, or None if no rule has that id.
+    """
+    rule = db.get(RecurringRule, rule_id)
+    if not rule:
+        return None
+    for key in _RULE_EDITABLE_FIELDS:
+        value = fields.get(key)
+        if value is not None:
+            setattr(rule, key, value)
+    db.add(rule)
+    db.commit()
+    db.refresh(rule)
+    return rule
+
+
+def delete_recurring_rule(db: Session, rule_id: int) -> bool:
+    """Delete a recurring rule, first nulling recurring_id on any expenses it
+    generated so we never leave a dangling foreign key (which Postgres rejects).
+
+    Returns True if a rule was deleted, False if none matched the id.
+    """
+    rule = db.get(RecurringRule, rule_id)
+    if not rule:
+        return False
+    linked = db.exec(select(Expense).where(Expense.recurring_id == rule_id)).all()
+    for exp in linked:
+        exp.recurring_id = None
+        db.add(exp)
+    db.delete(rule)
+    db.commit()
+    return True

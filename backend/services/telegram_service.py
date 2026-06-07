@@ -1,5 +1,5 @@
 import re
-from datetime import date
+from datetime import date, datetime
 
 
 def today_display(target_date: date) -> str:
@@ -8,22 +8,29 @@ def today_display(target_date: date) -> str:
 
 def format_help_text() -> str:
     return (
-        "Formats:\n"
+        "Log an expense by typing it:\n"
         "merchant amount category: netflix 14.7 bills\n"
         "amount category: 8.5 food\n"
         "merchant amount: coffee 2.5\n"
         "amount only: 14.7 (category defaults to Other)\n\n"
-        "Commands:\n"
+        "Reports:\n"
         "/today - expenses today\n"
         "/week - expenses this week\n"
         "/month - this month summary\n"
         "/max - highest single expense this month\n"
         "/top5 - top 5 expenses this month\n"
         "/budget - budget status\n"
-        "/categories - list all categories\n"
+        "/categories - list all categories\n\n"
+        "Subscriptions:\n"
         "/subs - list all subscriptions\n"
-        "/addsubscription - add a new subscription\n"
-        "/removesub - remove a subscription"
+        "/addsub - add a subscription\n"
+        "/editsub - edit one (e.g. /editsub Netflix 15.99 27/06/2026)\n"
+        "/delsub - delete a subscription\n\n"
+        "Expenses:\n"
+        "/addexpense - add an expense (can be backdated)\n"
+        "/editexpense - edit a recent expense\n"
+        "/delexpense - delete a recent expense\n\n"
+        "/cancel - cancel the current action"
     )
 
 
@@ -222,11 +229,90 @@ def format_subs_list(rules: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def format_removesub_list(rules: list[dict]) -> str:
+def format_subs_numbered(rules: list[dict], action: str = "edit") -> str:
+    """Numbered subscription list for the /editsub and /delsub pick flows."""
     lines = ["Your subscriptions:"]
     for i, r in enumerate(rules, 1):
         due = r["next_due_date"]
         due_str = f"{due:%d/%m/%Y}" if hasattr(due, "strftime") else str(due)
         lines.append(f"{i}. {r['name']} - {r['amount']:.2f} JD (due {due_str})")
-    lines.append("\nReply with a number to remove it.")
+    lines.append(f"\nReply with a number to {action} it, or /cancel.")
     return "\n".join(lines)
+
+
+def format_expenses_numbered(expenses: list[dict], action: str = "edit") -> str:
+    """Numbered recent-expense list for the /editexpense and /delexpense flows.
+
+    Each row needs: merchant/description, amount, category_name, date.
+    """
+    if not expenses:
+        return "No expenses found yet. Type one like: coffee 2.5 food"
+    lines = ["Recent expenses:"]
+    for i, e in enumerate(expenses, 1):
+        name = e.get("merchant") or e.get("description") or "Expense"
+        category_name = e.get("category_name") or "Uncategorized"
+        d = e["date"]
+        d_str = f"{d:%b %d}" if hasattr(d, "strftime") else str(d)
+        lines.append(f"{i}. {name} - {e['amount']:.2f} JD ({category_name}) - {d_str}")
+    lines.append(f"\nReply with a number to {action} it, or /cancel.")
+    return "\n".join(lines)
+
+
+def parse_amount(text: str) -> float | None:
+    """Parse a positive amount, tolerating a comma decimal. None if invalid."""
+    try:
+        value = float(text.strip().replace(",", "."))
+    except ValueError:
+        return None
+    return value if value > 0 else None
+
+
+def parse_date_ddmmyyyy(text: str) -> date | None:
+    """Parse a DD/MM/YYYY date. None if it doesn't match."""
+    try:
+        return datetime.strptime(text.strip(), "%d/%m/%Y").date()
+    except ValueError:
+        return None
+
+
+def match_rules_by_name(query: str, rules: list[dict]) -> list[dict]:
+    """Fuzzy-match subscriptions by name. Exact (case-insensitive) wins; else
+    substring either direction. Returns all matches (possibly empty)."""
+    q = query.lower().strip()
+    if not q:
+        return []
+    exact = [r for r in rules if r["name"].lower() == q]
+    if exact:
+        return exact
+    return [r for r in rules if q in r["name"].lower() or r["name"].lower() in q]
+
+
+def parse_editsub_oneshot(args: str, rules: list[dict]) -> dict | None:
+    """Parse '<name> <amount> [DD/MM/YYYY]' from the right so multi-word names
+    work. Returns {"amount", "due_date", "matches"} or None if it can't parse a
+    name + amount.
+    """
+    tokens = args.split()
+    if not tokens:
+        return None
+
+    due_date = parse_date_ddmmyyyy(tokens[-1])
+    if due_date is not None:
+        tokens = tokens[:-1]
+    if not tokens:
+        return None
+
+    amount = parse_amount(tokens[-1])
+    if amount is None:
+        return None
+    tokens = tokens[:-1]
+    if not tokens:
+        return None
+
+    name_query = " ".join(tokens)
+    return {
+        "amount": amount,
+        "due_date": due_date,
+        "matches": match_rules_by_name(name_query, rules),
+        "name_query": name_query,
+    }

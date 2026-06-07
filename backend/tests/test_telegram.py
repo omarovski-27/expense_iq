@@ -134,7 +134,12 @@ class TestCommandRouting:
         _, text = _post(telegram_client, mock_tg, "/help")
         assert "/today" in text
         assert "/subs" in text
-        assert "/addsubscription" in text
+        assert "/addsub" in text
+        assert "/editsub" in text
+        assert "/delsub" in text
+        assert "/addexpense" in text
+        assert "/editexpense" in text
+        assert "/delexpense" in text
 
     def test_categories_command(self, telegram_client, mock_tg):
         _, text = _post(telegram_client, mock_tg, "/categories")
@@ -565,3 +570,341 @@ class TestTop5Command:
     def test_top5_in_help(self, telegram_client, mock_tg):
         _, text = _post(telegram_client, mock_tg, "/help")
         assert "/top5" in text
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# /editsub flow
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _add_rule(engine, name="Netflix", amount=14.7, due=date(2026, 6, 1)):
+    with Session(engine) as s:
+        r = RecurringRule(
+            name=name, amount=amount, frequency="monthly",
+            next_due_date=due, is_active=True,
+        )
+        s.add(r)
+        s.commit()
+        s.refresh(r)
+        return r.id
+
+
+def _only_rule(engine) -> RecurringRule:
+    with Session(engine) as s:
+        return s.exec(__import__("sqlmodel").select(RecurringRule)).first()
+
+
+def _only_expense(engine) -> Expense:
+    with Session(engine) as s:
+        return s.exec(__import__("sqlmodel").select(Expense)).first()
+
+
+def _all_rules(engine):
+    with Session(engine) as s:
+        return s.exec(__import__("sqlmodel").select(RecurringRule)).all()
+
+
+def _all_expenses(engine):
+    with Session(engine) as s:
+        return s.exec(__import__("sqlmodel").select(Expense)).all()
+
+
+class TestEditSubFlow:
+    def test_editsub_empty(self, telegram_client, mock_tg):
+        _, t = _post(telegram_client, mock_tg, "/editsub")
+        assert "no subscriptions" in t.lower()
+
+    def test_editsub_guided_updates_amount_and_date(self, telegram_client, mock_tg, engine):
+        _add_rule(engine, "Netflix", 14.7)
+        _, t = _post(telegram_client, mock_tg, "/editsub")
+        assert "Netflix" in t and "1." in t
+        _, t = _post(telegram_client, mock_tg, "1")
+        assert "amount" in t.lower()
+        _, t = _post(telegram_client, mock_tg, "20")
+        assert "due date" in t.lower()
+        _, t = _post(telegram_client, mock_tg, "15/07/2026")
+        assert "updated" in t.lower()
+        rule = _only_rule(engine)
+        assert rule.amount == 20
+        assert rule.next_due_date == date(2026, 7, 15)
+
+    def test_editsub_skip_keeps_amount(self, telegram_client, mock_tg, engine):
+        _add_rule(engine, "Spotify", 5.99, date(2026, 6, 10))
+        _post(telegram_client, mock_tg, "/editsub")
+        _post(telegram_client, mock_tg, "1")
+        _, t = _post(telegram_client, mock_tg, "skip")       # keep amount
+        assert "due date" in t.lower()
+        _post(telegram_client, mock_tg, "20/06/2026")        # change date only
+        rule = _only_rule(engine)
+        assert rule.amount == 5.99
+        assert rule.next_due_date == date(2026, 6, 20)
+
+    def test_editsub_invalid_amount_reprompts(self, telegram_client, mock_tg, engine):
+        _add_rule(engine)
+        _post(telegram_client, mock_tg, "/editsub")
+        _post(telegram_client, mock_tg, "1")
+        _, t = _post(telegram_client, mock_tg, "abc")
+        assert "invalid" in t.lower()
+
+    def test_editsub_oneshot_amount_and_date(self, telegram_client, mock_tg, engine):
+        _add_rule(engine, "Netflix", 14.7, date(2026, 6, 1))
+        _, t = _post(telegram_client, mock_tg, "/editsub Netflix 19.99 27/06/2026")
+        assert "updated" in t.lower()
+        rule = _only_rule(engine)
+        assert rule.amount == 19.99
+        assert rule.next_due_date == date(2026, 6, 27)
+
+    def test_editsub_oneshot_amount_only_keeps_date(self, telegram_client, mock_tg, engine):
+        _add_rule(engine, "Netflix", 14.7, date(2026, 6, 1))
+        _post(telegram_client, mock_tg, "/editsub Netflix 19.99")
+        rule = _only_rule(engine)
+        assert rule.amount == 19.99
+        assert rule.next_due_date == date(2026, 6, 1)
+
+    def test_editsub_oneshot_multiword_name(self, telegram_client, mock_tg, engine):
+        _add_rule(engine, "Netflix Premium", 14.7, date(2026, 6, 1))
+        _post(telegram_client, mock_tg, "/editsub Netflix Premium 22")
+        rule = _only_rule(engine)
+        assert rule.amount == 22
+
+    def test_editsub_oneshot_no_match(self, telegram_client, mock_tg, engine):
+        _add_rule(engine, "Netflix")
+        _, t = _post(telegram_client, mock_tg, "/editsub Hulu 10")
+        assert "no subscription matching" in t.lower()
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# /delsub flow
+# ─────────────────────────────────────────────────────────────────────────────
+
+class TestDelSubFlow:
+    def test_delsub_empty(self, telegram_client, mock_tg):
+        _, t = _post(telegram_client, mock_tg, "/delsub")
+        assert "no subscriptions" in t.lower()
+
+    def test_delsub_guided_deletes(self, telegram_client, mock_tg, engine):
+        _add_rule(engine, "ToDelete")
+        _, t = _post(telegram_client, mock_tg, "/delsub")
+        assert "ToDelete" in t and "1." in t
+        _, t = _post(telegram_client, mock_tg, "1")
+        assert "removed" in t.lower()
+        assert _all_rules(engine) == []
+
+    def test_delsub_oneshot_requires_confirm(self, telegram_client, mock_tg, engine):
+        _add_rule(engine, "Netflix")
+        _, t = _post(telegram_client, mock_tg, "/delsub Netflix")
+        assert "yes" in t.lower()
+        assert len(_all_rules(engine)) == 1          # not deleted yet
+        _, t = _post(telegram_client, mock_tg, "yes")
+        assert "removed" in t.lower()
+        assert _all_rules(engine) == []
+
+    def test_delsub_oneshot_cancel_keeps_rule(self, telegram_client, mock_tg, engine):
+        _add_rule(engine, "Netflix")
+        _post(telegram_client, mock_tg, "/delsub Netflix")
+        _, t = _post(telegram_client, mock_tg, "no")
+        assert "cancel" in t.lower()
+        assert len(_all_rules(engine)) == 1
+
+    def test_delsub_preserves_linked_expense_and_nulls_fk(self, telegram_client, mock_tg, engine):
+        """The bug fix: deleting a subscription must keep its generated expenses
+        (recurring_id nulled), never orphan or lose them."""
+        rule_id = _add_rule(engine, "Gym", 30.0)
+        with Session(engine) as s:
+            s.add(Expense(
+                amount=30.0, description="Gym", date=FROZEN_TODAY,
+                is_recurring=True, recurring_id=rule_id,
+            ))
+            s.commit()
+        _post(telegram_client, mock_tg, "/delsub")
+        _post(telegram_client, mock_tg, "1")
+        exps = _all_expenses(engine)
+        assert len(exps) == 1                        # expense preserved
+        assert exps[0].recurring_id is None          # FK nulled, not dangling
+        assert _all_rules(engine) == []
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# /addexpense flow
+# ─────────────────────────────────────────────────────────────────────────────
+
+class TestAddExpenseFlow:
+    def test_addexpense_oneshot_backdated(self, telegram_client, mock_tg, engine):
+        _, t = _post(telegram_client, mock_tg, "/addexpense coffee 2.5 food 05/06/2026")
+        assert "coffee" in t.lower()
+        exp = _only_expense(engine)
+        assert exp.amount == 2.5
+        assert exp.date == date(2026, 6, 5)
+
+    def test_addexpense_oneshot_defaults_today(self, telegram_client, mock_tg, engine):
+        _post(telegram_client, mock_tg, "/addexpense lunch 8 food")
+        assert _only_expense(engine).date == FROZEN_TODAY
+
+    def test_addexpense_guided_with_date(self, telegram_client, mock_tg, engine):
+        _, t = _post(telegram_client, mock_tg, "/addexpense")
+        assert "expense" in t.lower()
+        _, t = _post(telegram_client, mock_tg, "taxi 3 transport")
+        assert "date" in t.lower()
+        _post(telegram_client, mock_tg, "01/06/2026")
+        exp = _only_expense(engine)
+        assert exp.amount == 3
+        assert exp.date == date(2026, 6, 1)
+
+    def test_addexpense_guided_today(self, telegram_client, mock_tg, engine):
+        _post(telegram_client, mock_tg, "/addexpense")
+        _post(telegram_client, mock_tg, "snack 1.5 food")
+        _post(telegram_client, mock_tg, "today")
+        assert _only_expense(engine).date == FROZEN_TODAY
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# /editexpense flow
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _add_expense(engine, amount=2.5, desc="coffee", cat="Food", when=None):
+    with Session(engine) as s:
+        cats = s.exec(__import__("sqlmodel").select(Category)).all()
+        cid = next(c.id for c in cats if c.name == cat)
+        e = Expense(
+            amount=amount, description=desc, merchant=desc,
+            date=when or FROZEN_TODAY, category_id=cid,
+        )
+        s.add(e)
+        s.commit()
+        s.refresh(e)
+        return e.id
+
+
+class TestEditExpenseFlow:
+    def test_editexpense_empty(self, telegram_client, mock_tg):
+        _, t = _post(telegram_client, mock_tg, "/editexpense")
+        assert "no expenses" in t.lower()
+
+    def test_editexpense_updates_amount(self, telegram_client, mock_tg, engine):
+        _add_expense(engine, 2.5, "coffee")
+        _, t = _post(telegram_client, mock_tg, "/editexpense")
+        assert "coffee" in t.lower() and "1." in t
+        _, t = _post(telegram_client, mock_tg, "1")
+        assert "amount" in t.lower()
+        _, t = _post(telegram_client, mock_tg, "9")
+        assert "category" in t.lower()
+        _, t = _post(telegram_client, mock_tg, "skip")
+        assert "date" in t.lower()
+        _, t = _post(telegram_client, mock_tg, "skip")
+        assert "updated" in t.lower()
+        assert _only_expense(engine).amount == 9
+
+    def test_editexpense_changes_category_and_date(self, telegram_client, mock_tg, engine):
+        _add_expense(engine, 2.5, "coffee", "Food")
+        _post(telegram_client, mock_tg, "/editexpense")
+        _post(telegram_client, mock_tg, "1")
+        _post(telegram_client, mock_tg, "skip")          # keep amount
+        _post(telegram_client, mock_tg, "transport")     # new category
+        _post(telegram_client, mock_tg, "20/06/2026")    # new date
+        with Session(engine) as s:
+            exp = s.exec(__import__("sqlmodel").select(Expense)).first()
+            cat = s.get(Category, exp.category_id)
+        assert exp.amount == 2.5                          # unchanged
+        assert exp.date == date(2026, 6, 20)
+        assert cat.name == "Transport"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# /delexpense flow
+# ─────────────────────────────────────────────────────────────────────────────
+
+class TestDelExpenseFlow:
+    def test_delexpense_empty(self, telegram_client, mock_tg):
+        _, t = _post(telegram_client, mock_tg, "/delexpense")
+        assert "no expenses" in t.lower()
+
+    def test_delexpense_deletes(self, telegram_client, mock_tg, engine):
+        _add_expense(engine, 5.0, "snack")
+        _, t = _post(telegram_client, mock_tg, "/delexpense")
+        assert "snack" in t.lower() and "1." in t
+        _, t = _post(telegram_client, mock_tg, "1")
+        assert "deleted" in t.lower()
+        assert _all_expenses(engine) == []
+
+    def test_delexpense_invalid_number(self, telegram_client, mock_tg, engine):
+        _add_expense(engine, 5.0, "snack")
+        _post(telegram_client, mock_tg, "/delexpense")
+        _, t = _post(telegram_client, mock_tg, "999")
+        assert "between" in t.lower() or "number" in t.lower()
+        assert len(_all_expenses(engine)) == 1           # nothing deleted
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# /cancel
+# ─────────────────────────────────────────────────────────────────────────────
+
+class TestCancelFlow:
+    def test_cancel_clears_active_flow(self, telegram_client, mock_tg, engine):
+        _add_rule(engine, "Netflix")
+        _post(telegram_client, mock_tg, "/editsub")          # enter a flow
+        _, t = _post(telegram_client, mock_tg, "/cancel")
+        assert "cancel" in t.lower()
+        # State cleared → cancelling again reports nothing to cancel
+        _, t = _post(telegram_client, mock_tg, "/cancel")
+        assert "nothing to cancel" in t.lower()
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Service-layer mutation helpers (single source of truth for Telegram + API)
+# ─────────────────────────────────────────────────────────────────────────────
+
+class TestMutationHelpers:
+    def test_delete_recurring_rule_nulls_fk(self, engine):
+        from services.recurring_service import delete_recurring_rule
+        with Session(engine) as s:
+            r = RecurringRule(
+                name="Gym", amount=30, frequency="monthly",
+                next_due_date=date(2026, 6, 1), is_active=True,
+            )
+            s.add(r)
+            s.commit()
+            s.refresh(r)
+            s.add(Expense(
+                amount=30, description="Gym", date=FROZEN_TODAY,
+                is_recurring=True, recurring_id=r.id,
+            ))
+            s.commit()
+            assert delete_recurring_rule(s, r.id) is True
+            exps = s.exec(__import__("sqlmodel").select(Expense)).all()
+            assert len(exps) == 1 and exps[0].recurring_id is None
+            assert delete_recurring_rule(s, r.id) is False   # already gone → no-op
+
+    def test_update_recurring_fields_partial(self, engine):
+        from services.recurring_service import update_recurring_fields
+        with Session(engine) as s:
+            r = RecurringRule(
+                name="Netflix", amount=14.7, frequency="monthly",
+                next_due_date=date(2026, 6, 1), is_active=True,
+            )
+            s.add(r)
+            s.commit()
+            s.refresh(r)
+            updated = update_recurring_fields(s, r.id, amount=20)
+            assert updated.amount == 20
+            assert updated.next_due_date == date(2026, 6, 1)   # untouched
+            assert update_recurring_fields(s, 999, amount=5) is None
+
+    def test_update_expense_fields_partial(self, engine):
+        from services.expense_service import update_expense_fields
+        with Session(engine) as s:
+            e = Expense(amount=2.5, description="coffee", date=FROZEN_TODAY)
+            s.add(e)
+            s.commit()
+            s.refresh(e)
+            updated = update_expense_fields(s, e.id, amount=9)
+            assert updated.amount == 9
+            assert updated.description == "coffee"              # untouched
+
+    def test_delete_expense_helper(self, engine):
+        from services.expense_service import delete_expense
+        with Session(engine) as s:
+            e = Expense(amount=2.5, description="coffee", date=FROZEN_TODAY)
+            s.add(e)
+            s.commit()
+            s.refresh(e)
+            assert delete_expense(s, e.id) is True
+            assert delete_expense(s, e.id) is False             # already gone → no-op

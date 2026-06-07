@@ -7,7 +7,6 @@ from sqlmodel import Session, select
 
 from database import get_session
 from models import (
-    Expense,
     RecurringRule,
     RecurringRuleCreate,
     RecurringRuleRead,
@@ -118,16 +117,12 @@ def toggle_recurring(rule_id: int, session: Session = Depends(get_session)):
 
 @router.delete("/{rule_id}")
 def delete_recurring(rule_id: int, session: Session = Depends(get_session)):
-    rule = session.get(RecurringRule, rule_id)
-    if not rule:
+    from services.recurring_service import delete_recurring_rule
+
+    # Shared helper nulls recurring_id on linked expenses before deleting, so we
+    # never leave a dangling FK. Same path the Telegram /delsub flow uses.
+    if not delete_recurring_rule(session, rule_id):
         raise HTTPException(status_code=404, detail="Recurring rule not found")
-    # Null out recurring_id on linked expenses to avoid dangling FKs
-    linked = session.exec(select(Expense).where(Expense.recurring_id == rule_id)).all()
-    for exp in linked:
-        exp.recurring_id = None
-        session.add(exp)
-    session.delete(rule)
-    session.commit()
     return {"message": "Recurring rule deleted"}
 
 

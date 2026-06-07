@@ -121,11 +121,11 @@ def delete_expense(
     expense_id: int,
     session: Session = Depends(get_session),
 ):
-    expense = session.get(Expense, expense_id)
-    if not expense:
+    from services.expense_service import delete_expense as _delete_expense
+
+    # Shared helper — same delete path the Telegram /delexpense flow uses.
+    if not _delete_expense(session, expense_id):
         raise HTTPException(status_code=404, detail="Expense not found")
-    session.delete(expense)
-    session.commit()
     return {"message": "Expense deleted"}
 
 
