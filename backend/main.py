@@ -369,39 +369,52 @@ async def telegram_webhook(payload: dict):
                 ]
             reply_text = format_top5_expenses(top5_payload, today)
         elif command == "/subs":
-            # 1. Auto-charge any subscriptions that are due
-            with Session(engine) as session:
-                charged = process_recurring_expenses(session)
+            # 1. Auto-charge any subscriptions that are due.
+            #    Must not raise: a 500 here makes Telegram retry the webhook and
+            #    re-run the charge, double-charging daily/weekly rules (their only
+            #    idempotency guard is the advanced next_due_date).
+            try:
+                with Session(engine) as session:
+                    charged = process_recurring_expenses(session)
+            except Exception:
+                logger.exception("Auto-charge failed during /subs")
+                charged = []
 
-            # 2. Send one notification per charged subscription
+            # 2. Send one notification per charged subscription (best-effort —
+            #    the charge already committed, so a send failure must not 500).
             _subs_api_url = f"https://api.telegram.org/bot{telegram_token}/sendMessage"
             async with httpx.AsyncClient(timeout=15) as _subs_client:
                 for item in charged:
                     _msg = f"\U0001f4c5 Auto-charged: {item['name']} — {item['amount']:.2f} JOD added to today's expenses."
-                    await _subs_client.post(_subs_api_url, json={"chat_id": chat_id, "text": _msg})
+                    try:
+                        await _subs_client.post(_subs_api_url, json={"chat_id": chat_id, "text": _msg})
+                    except Exception:
+                        logger.exception("Failed to send /subs auto-charge notification for %s", item["name"])
 
-                # 3. Fetch the current subscription list and send it
-                with Session(engine) as session:
-                    rules = session.exec(
-                        select(RecurringRule)
-                        .where(RecurringRule.is_active == True)
-                        .order_by(RecurringRule.next_due_date)
-                    ).all()
-                    rules_payload = [
-                        {
-                            "name": r.name,
-                            "amount": r.amount,
-                            "category_name": (
-                                session.get(Category, r.category_id).name
-                                if r.category_id else "Other"
-                            ),
-                            "next_due_date": r.next_due_date,
-                        }
-                        for r in rules
-                    ]
-                list_text = format_subs_list(rules_payload)
-                resp = await _subs_client.post(_subs_api_url, json={"chat_id": chat_id, "text": list_text})
-                resp.raise_for_status()
+                # 3. Fetch the current subscription list and send it (best-effort).
+                try:
+                    with Session(engine) as session:
+                        rules = session.exec(
+                            select(RecurringRule)
+                            .where(RecurringRule.is_active == True)
+                            .order_by(RecurringRule.next_due_date)
+                        ).all()
+                        rules_payload = [
+                            {
+                                "name": r.name,
+                                "amount": r.amount,
+                                "category_name": (
+                                    session.get(Category, r.category_id).name
+                                    if r.category_id else "Other"
+                                ),
+                                "next_due_date": r.next_due_date,
+                            }
+                            for r in rules
+                        ]
+                    list_text = format_subs_list(rules_payload)
+                    await _subs_client.post(_subs_api_url, json={"chat_id": chat_id, "text": list_text})
+                except Exception:
+                    logger.exception("Failed to build or send the /subs list")
 
             return {"ok": True}
         elif command == "/addsubscription":
@@ -456,10 +469,15 @@ async def telegram_webhook(payload: dict):
             session.commit()
             reply_text = format_confirmation(parsed, today)
 
+    # Best-effort send: the expense is already committed, so a Telegram error
+    # here must not 500 — otherwise Telegram retries the webhook and the same
+    # expense is logged twice.
     api_url = f"https://api.telegram.org/bot{telegram_token}/sendMessage"
     async with httpx.AsyncClient(timeout=15) as client:
-        response = await client.post(api_url, json={"chat_id": chat_id, "text": reply_text})
-        response.raise_for_status()
+        try:
+            await client.post(api_url, json={"chat_id": chat_id, "text": reply_text})
+        except Exception:
+            logger.exception("Failed to send expense confirmation")
 
     return {"ok": True}
 

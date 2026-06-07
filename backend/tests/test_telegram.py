@@ -19,9 +19,32 @@ from services.telegram_service import find_category_id, parse_expense_text
 from tests.conftest import ALLOWED_USER_ID, TEST_CHAT_ID, TODAY, make_tg_payload
 
 
+# Freeze "today" (Jordan time) for the whole module so the date-filtered
+# commands (/today, /week, /month, /max, /top5) and the rows seeded below agree
+# on the calendar day. Without this, fixtures seed with the host's local (UTC)
+# date while handlers filter by Jordan-local today (UTC+3), so the suite flakes
+# in the 21:00–24:00 UTC window and at month boundaries.
+FROZEN_TODAY = date.fromisoformat(TODAY)
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Helpers
 # ─────────────────────────────────────────────────────────────────────────────
+
+@pytest.fixture(autouse=True)
+def _freeze_jordan_today(monkeypatch):
+    """Pin today_jordan() to FROZEN_TODAY in every module that calls it.
+
+    today_jordan is imported as the module-level name `_today_jordan` in both
+    main and the recurring service, so patch it in each place — rebinding
+    tz.today_jordan wouldn't affect those already-bound aliases.
+    """
+    import main as main_module
+    import services.recurring_service as recurring_module
+
+    monkeypatch.setattr(main_module, "_today_jordan", lambda: FROZEN_TODAY)
+    monkeypatch.setattr(recurring_module, "_today_jordan", lambda: FROZEN_TODAY)
+
 
 @pytest.fixture()
 def mock_tg():
@@ -147,7 +170,7 @@ class TestDateCommands:
         with Session(engine) as s:
             cats = s.exec(__import__("sqlmodel").select(Category)).all()
             food_id = next(c.id for c in cats if c.name == "Food")
-            s.add(Expense(amount=12.5, description="Lunch", date=date.today(), category_id=food_id))
+            s.add(Expense(amount=12.5, description="Lunch", date=FROZEN_TODAY, category_id=food_id))
             s.commit()
 
     def test_today_shows_expense(self, telegram_client, mock_tg, engine):
@@ -158,15 +181,15 @@ class TestDateCommands:
 
     def test_today_shows_total(self, telegram_client, mock_tg, engine):
         with Session(engine) as s:
-            s.add(Expense(amount=10.0, description="A", date=date.today()))
-            s.add(Expense(amount=5.0, description="B", date=date.today()))
+            s.add(Expense(amount=10.0, description="A", date=FROZEN_TODAY))
+            s.add(Expense(amount=5.0, description="B", date=FROZEN_TODAY))
             s.commit()
         _, text = _post(telegram_client, mock_tg, "/today")
         assert "15" in text  # total
 
     def test_week_shows_expense_from_this_week(self, telegram_client, mock_tg, engine):
         with Session(engine) as s:
-            s.add(Expense(amount=8.0, description="WeekExpense", date=date.today()))
+            s.add(Expense(amount=8.0, description="WeekExpense", date=FROZEN_TODAY))
             s.commit()
         _, text = _post(telegram_client, mock_tg, "/week")
         assert "WeekExpense" in text
@@ -177,7 +200,7 @@ class TestDateCommands:
             food_id = next(c.id for c in cats if c.name == "Food")
             s.add(Expense(
                 amount=25.0, description="Groceries",
-                date=date(date.today().year, date.today().month, 1),
+                date=date(FROZEN_TODAY.year, FROZEN_TODAY.month, 1),
                 category_id=food_id,
             ))
             s.commit()
@@ -219,7 +242,7 @@ class TestSubsCommand:
                 name="AutoCharge",
                 amount=9.99,
                 frequency="monthly",
-                next_due_date=date.today(),
+                next_due_date=FROZEN_TODAY,
                 is_active=True,
             ))
             s.commit()
@@ -462,9 +485,9 @@ class TestMaxCommand:
 
     def test_max_returns_highest(self, telegram_client, mock_tg, engine):
         with Session(engine) as s:
-            s.add(Expense(amount=15.0, description="Cheap", date=date.today()))
-            s.add(Expense(amount=250.0, description="Expensive", date=date.today()))
-            s.add(Expense(amount=40.0, description="Medium", date=date.today()))
+            s.add(Expense(amount=15.0, description="Cheap", date=FROZEN_TODAY))
+            s.add(Expense(amount=250.0, description="Expensive", date=FROZEN_TODAY))
+            s.add(Expense(amount=40.0, description="Medium", date=FROZEN_TODAY))
             s.commit()
         _, text = _post(telegram_client, mock_tg, "/max")
         assert "250" in text
@@ -474,17 +497,19 @@ class TestMaxCommand:
         with Session(engine) as s:
             cats = s.exec(__import__("sqlmodel").select(Category)).all()
             food_id = next(c.id for c in cats if c.name == "Food")
-            s.add(Expense(amount=180.0, description="BigMeal", date=date.today(), category_id=food_id))
+            s.add(Expense(amount=180.0, description="BigMeal", date=FROZEN_TODAY, category_id=food_id))
             s.commit()
         _, text = _post(telegram_client, mock_tg, "/max")
         assert "Food" in text
         assert "180" in text
 
     def test_max_ignores_previous_month(self, telegram_client, mock_tg, engine):
-        from datetime import date as date_cls
-        today = date_cls.today()
-        prev_month = date_cls(today.year if today.month > 1 else today.year - 1,
-                              today.month - 1 if today.month > 1 else 12, 1)
+        today = FROZEN_TODAY
+        prev_month = date(
+            today.year if today.month > 1 else today.year - 1,
+            today.month - 1 if today.month > 1 else 12,
+            1,
+        )
         with Session(engine) as s:
             s.add(Expense(amount=999.0, description="OldExpense", date=prev_month))
             s.commit()
@@ -508,7 +533,7 @@ class TestTop5Command:
     def test_top5_returns_sorted_by_amount(self, telegram_client, mock_tg, engine):
         with Session(engine) as s:
             for i, amount in enumerate([10.0, 50.0, 30.0, 20.0, 40.0], 1):
-                s.add(Expense(amount=amount, description=f"Exp{i}", date=date.today()))
+                s.add(Expense(amount=amount, description=f"Exp{i}", date=FROZEN_TODAY))
             s.commit()
         _, text = _post(telegram_client, mock_tg, "/top5")
         assert "50" in text
@@ -519,7 +544,7 @@ class TestTop5Command:
     def test_top5_limited_to_5(self, telegram_client, mock_tg, engine):
         with Session(engine) as s:
             for i in range(8):
-                s.add(Expense(amount=float(i + 1) * 10, description=f"Item{i}", date=date.today()))
+                s.add(Expense(amount=float(i + 1) * 10, description=f"Item{i}", date=FROZEN_TODAY))
             s.commit()
         _, text = _post(telegram_client, mock_tg, "/top5")
         # Only 5 numbered entries
@@ -529,8 +554,8 @@ class TestTop5Command:
 
     def test_top5_fewer_than_5(self, telegram_client, mock_tg, engine):
         with Session(engine) as s:
-            s.add(Expense(amount=100.0, description="Only", date=date.today()))
-            s.add(Expense(amount=50.0, description="Two", date=date.today()))
+            s.add(Expense(amount=100.0, description="Only", date=FROZEN_TODAY))
+            s.add(Expense(amount=50.0, description="Two", date=FROZEN_TODAY))
             s.commit()
         _, text = _post(telegram_client, mock_tg, "/top5")
         assert "1." in text
