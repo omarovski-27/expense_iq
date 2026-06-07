@@ -12,7 +12,7 @@ from sqlmodel import Session, select
 from sqlalchemy import extract, func
 
 from database import get_session  # noqa — available for callers
-from models import AIInsight, Budget, Category, Expense
+from models import AIInsight, Budget, Category, Expense, RecurringRule
 
 load_dotenv()
 
@@ -57,9 +57,13 @@ Analyze the data and return this exact structure:
 }
 
 Rules:
-- Be specific with numbers and percentages
-- Be direct, not preachy
-- If no spikes exist, return empty array
+- Use ONLY numbers present in (or directly computable from) the provided data. Never invent or estimate figures — averages, baselines, subscription costs, percentages — that the data does not support.
+- For any "vs average" or trend claim, use avg_monthly_spend_prior_3mo and prior_3_month_totals. If those are zero or sparse, say the history is limited rather than fabricating a baseline.
+- uncategorized_total is spending with no category assigned — distinct from the "Other" category. Do not conflate them.
+- Only mention a subscription if it appears in active_subscriptions, using its real name and amount.
+- Be specific with numbers and percentages, but only ones grounded in the data.
+- Be direct, not preachy.
+- If no spikes exist, return an empty array.
 - severity "critical" = 60%+ above average, "warning" = 30–60% above"""
 
 
@@ -76,6 +80,19 @@ def _category_totals_for_month(month: int, year: int, db: Session) -> dict[int, 
         .group_by(Expense.category_id)
     ).all()
     return {row[0]: float(row[1]) for row in rows if row[0] is not None}
+
+
+def _total_for_month(month: int, year: int, db: Session) -> float:
+    """Total spend for a month, including uncategorized expenses."""
+    rows = db.exec(
+        select(func.sum(Expense.amount))
+        .where(extract("month", Expense.date) == month)
+        .where(extract("year", Expense.date) == year)
+    ).all()
+    val = rows[0] if rows else None
+    if isinstance(val, (tuple, list)):
+        val = val[0]
+    return float(val) if val is not None else 0.0
 
 
 def _strip_code_fences(text: str) -> str:
@@ -148,15 +165,43 @@ async def generate_monthly_insights(month: int, year: int, db: Session) -> list[
     top_merchant_name = max(merchant_totals, key=merchant_totals.get) if merchant_totals else "N/A"
     top_merchant_total = merchant_totals.get(top_merchant_name, 0.0)
 
+    # ── Uncategorized spend (no category assigned — distinct from "Other") ────
+    uncategorized_total = round(sum(e.amount for e in expenses if not e.category_id), 2)
+
+    # ── Overall monthly totals for the previous 3 months + their average ─────
+    #    Gives the model a real baseline so it can't invent one.
+    prior_month_totals = [
+        {"month": d.month, "year": d.year, "total": round(_total_for_month(d.month, d.year, db), 2)}
+        for d in prev_months
+    ]
+    _months_with_spend = [m["total"] for m in prior_month_totals if m["total"] > 0]
+    avg_prior_3mo = (
+        round(sum(_months_with_spend) / len(_months_with_spend), 2)
+        if _months_with_spend else 0.0
+    )
+
+    # ── Active recurring subscriptions (so any "subscription" claim is real) ──
+    active_rules = db.exec(
+        select(RecurringRule).where(RecurringRule.is_active == True)  # noqa: E712
+    ).all()
+    subscriptions = [
+        {"name": r.name, "amount": round(r.amount, 2), "frequency": r.frequency}
+        for r in active_rules
+    ]
+
     # ── Build prompt payload ─────────────────────────────────────────────────
     data = {
         "month": month,
         "year": year,
         "categories": cat_payload,
         "total_spend": round(sum(e.amount for e in expenses), 2),
+        "uncategorized_total": uncategorized_total,
         "transaction_count": len(expenses),
         "largest_expense": largest_payload,
         "top_merchant": {"name": top_merchant_name, "total": round(top_merchant_total, 2)},
+        "prior_3_month_totals": prior_month_totals,
+        "avg_monthly_spend_prior_3mo": avg_prior_3mo,
+        "active_subscriptions": subscriptions,
     }
 
     # ── Call Claude ──────────────────────────────────────────────────────────

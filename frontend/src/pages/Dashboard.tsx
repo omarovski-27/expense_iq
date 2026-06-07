@@ -50,6 +50,7 @@ export default function Dashboard() {
   const now = new Date();
   const month = now.getMonth() + 1;
   const year = now.getFullYear();
+  const monthLabel = format(now, "MMMM yyyy");
   const { currencySymbol } = useCurrency();
 
   const [loading, setLoading] = useState(true);
@@ -71,7 +72,7 @@ export default function Dashboard() {
         getCategoryBreakdown(month, year),
         getBudgetStatus(month, year),
         getExpenses({ month, year, limit: 10 }),
-        getInsights({ limit: 3 }),
+        getInsights({ month, year, limit: 3 }),
       ]);
 
       const allFailed = results.every((r) => r.status === "rejected");
@@ -378,7 +379,7 @@ export default function Dashboard() {
             ))
           ) : insights.length === 0 ? (
             <div className="bg-gray-800 rounded-xl p-5 border border-gray-700 text-gray-500 text-sm">
-              No AI insights yet. Generate a report on the Insights page.
+              No AI insights for {monthLabel} yet. Generate a report on the Insights page.
             </div>
           ) : (
             insights.map((insight) => (
