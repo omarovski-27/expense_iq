@@ -70,6 +70,19 @@ def engine():
     e.dispose()
 
 
+@pytest.fixture(autouse=True)
+def freeze_jordan_today(monkeypatch):
+    """Pin date-sensitive backend tests to the shared fixture date."""
+    from datetime import date
+
+    import main as main_module
+    import services.recurring_service as recurring_module
+
+    frozen_today = date.fromisoformat(TODAY)
+    monkeypatch.setattr(main_module, "_today_jordan", lambda: frozen_today)
+    monkeypatch.setattr(recurring_module, "_today_jordan", lambda: frozen_today)
+
+
 @pytest.fixture()
 def client(engine):
     """TestClient with get_session overridden to use the test engine."""
