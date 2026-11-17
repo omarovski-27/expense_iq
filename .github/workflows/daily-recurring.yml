@@ -1,0 +1,26 @@
+name: Daily subscription charges
+
+# Charges any subscriptions that are due and pushes a notification for each.
+# This used to happen only on a cold start or the Telegram /subs command; with
+# keep-warm preventing cold starts and Telegram unavailable, nothing ran it.
+# The endpoint is idempotent, so a delayed or repeated run is harmless.
+#
+# Needs the repo secret INGEST_API_KEY (Settings > Secrets and variables > Actions),
+# the same value as the backend's INGEST_API_KEY env var.
+
+on:
+  schedule:
+    - cron: "7 6 * * *"   # 06:07 UTC = 09:07 Amman
+  workflow_dispatch: {}
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Charge due subscriptions
+        env:
+          INGEST_API_KEY: ${{ secrets.INGEST_API_KEY }}
+        run: |
+          curl --fail-with-body --silent --show-error --retry 3 --retry-all-errors --max-time 120 \
+            -X POST https://expense-iq-ypan.onrender.com/api/notify/run-daily \
+            -H "X-API-Key: ${INGEST_API_KEY}"

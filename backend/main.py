@@ -19,7 +19,8 @@ from services.recurring_service import (
     update_recurring_fields,
 )
 from services.expense_service import delete_expense, update_expense_fields
-from routers import analytics, budgets, categories, expenses, exports, health, insights, recurring
+from services.push_service import notify_charged
+from routers import analytics, budgets, categories, expenses, exports, health, ingest, insights, notify, recurring
 from services.telegram_service import (
     build_expense_payload,
     find_category_id,
@@ -90,6 +91,10 @@ async def lifespan(app: FastAPI):
             charged = []
 
     if charged:
+        with Session(engine) as push_session:
+            notify_charged(push_session, charged)
+
+    if charged:
         _telegram_token = os.getenv("TELEGRAM_BOT_TOKEN")
         _chat_id_str = os.getenv("TELEGRAM_ALLOWED_USER_ID")
         if _telegram_token and _chat_id_str:
@@ -134,6 +139,8 @@ app.include_router(recurring.router, prefix="/api")
 app.include_router(insights.router, prefix="/api")
 app.include_router(analytics.router, prefix="/api")
 app.include_router(exports.router, prefix="/api")
+app.include_router(ingest.router, prefix="/api")
+app.include_router(notify.router, prefix="/api")
 app.include_router(health.router)
 
 

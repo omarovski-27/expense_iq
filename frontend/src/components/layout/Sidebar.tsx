@@ -4,10 +4,12 @@ import {
   Receipt,
   Brain,
   Target,
+  Zap,
   Settings2,
 } from "lucide-react";
 
 const navItems = [
+  { to: "/quick", label: "Add", icon: Zap },
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/transactions", label: "Transactions", icon: Receipt },
   { to: "/insights", label: "Insights", icon: Brain },
