@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Bell, BellOff, KeyRound, LayoutDashboard, Loader2, Settings2, Undo2 } from "lucide-react";
+import { Bell, BellOff, LayoutDashboard, Loader2, Settings2, Undo2 } from "lucide-react";
 import { getDeviceKey, ingest, setDeviceKey } from "../api/ingest";
 import { getCategories } from "../api/categories";
 import {
@@ -11,6 +11,7 @@ import {
   type PushState,
 } from "../utils/push";
 import type { Category } from "../types";
+import DeviceKeyForm from "../components/auth/DeviceKeyForm";
 
 type Day = "today" | "yesterday";
 interface Status {
@@ -25,7 +26,6 @@ function DeviceSetup({
   deviceKey: string;
   onKeyChange: (k: string) => void;
 }) {
-  const [draft, setDraft] = useState(deviceKey);
   const [push, setPush] = useState<PushState | null>(null);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
@@ -56,29 +56,7 @@ function DeviceSetup({
 
   return (
     <div className="space-y-4 rounded-xl border border-gray-800 bg-gray-950 p-4">
-      <div>
-        <label className="mb-1 flex items-center gap-2 text-sm text-gray-400" htmlFor="device-key">
-          <KeyRound size={14} /> Device key
-        </label>
-        <div className="flex gap-2">
-          <input
-            id="device-key"
-            type="password"
-            autoComplete="off"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            className="h-11 flex-1 rounded-lg border border-gray-700 bg-gray-900 px-3 text-base text-white focus:border-amber-500 focus:outline-none"
-            placeholder="Your INGEST_API_KEY"
-          />
-          <button
-            onClick={() => onKeyChange(draft.trim())}
-            className="h-11 rounded-lg bg-amber-500 px-4 font-medium text-gray-950 touch-manipulation"
-          >
-            Save
-          </button>
-        </div>
-        <p className="mt-1 text-xs text-gray-500">Stored on this device only.</p>
-      </div>
+      <DeviceKeyForm initial={deviceKey} onSave={onKeyChange} />
 
       {deviceKey && push && (
         <div>

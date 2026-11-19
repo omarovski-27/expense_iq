@@ -13,7 +13,7 @@ import {
   Upload,
   X,
 } from "lucide-react";
-import client from "../api/client";
+import { downloadExport } from "../api/exports";
 import { useCurrency } from "../context/CurrencyContext";
 
 import {
@@ -200,7 +200,9 @@ export default function Settings() {
     const ts = new Date().toISOString();
     localStorage.setItem(LS_LAST_BACKUP, ts);
     setLastBackup(ts);
-    window.open(`${client.defaults.baseURL}/exports/csv`, "_blank");
+    downloadExport("csv").catch(() => {
+      /* error toast or key screen handled by the API client */
+    });
   }
 
   function handleExportExcel() {
@@ -210,10 +212,9 @@ export default function Settings() {
     setLastBackup(ts);
     const month = now.getMonth() + 1;
     const year = now.getFullYear();
-    window.open(
-      `${client.defaults.baseURL}/exports/excel?month=${month}&year=${year}`,
-      "_blank"
-    );
+    downloadExport("excel", { month, year }).catch(() => {
+      /* error toast or key screen handled by the API client */
+    });
   }
 
   async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {

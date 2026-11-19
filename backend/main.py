@@ -123,6 +123,8 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    # Lets the web app read the export file name when it downloads with the key.
+    expose_headers=["Content-Disposition"],
 )
 
 

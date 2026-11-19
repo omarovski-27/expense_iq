@@ -7,6 +7,7 @@ import Insights from "./pages/Insights";
 import Budgets from "./pages/Budgets";
 import Settings from "./pages/Settings";
 import QuickAdd from "./pages/QuickAdd";
+import KeyGate from "./components/auth/KeyGate";
 
 function KeyboardShortcuts() {
   useEffect(() => {
@@ -43,7 +44,13 @@ export default function App() {
       <KeyboardShortcuts />
       <Routes>
         <Route path="/quick" element={<QuickAdd />} />
-        <Route element={<Layout />}>
+        <Route
+          element={
+            <KeyGate>
+              <Layout />
+            </KeyGate>
+          }
+        >
           <Route path="/" element={<Dashboard />} />
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/insights" element={<Insights />} />
