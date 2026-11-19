@@ -30,7 +30,11 @@ It runs the same parser as the Telegram bot, so `coffee 2.5 food` works everywhe
 5. Deploy. Check: `curl -X POST https://expense-iq-ypan.onrender.com/api/ingest -H "X-API-Key: <key>" -H "Content-Type: application/json" -d '{"text":"test 0.01"}'`
    then send `{"text":"undo"}` to remove it.
 
-Treat the key like a password. Anyone holding it can add expenses and trigger charges.
+Treat the key like a password. Anyone holding it can read and change all your expenses.
+
+**The whole app needs this key.** Every `/api/*` route answers `401` without it, so the
+dashboard asks for it too (see section 4). If `INGEST_API_KEY` is not set on Render, every
+route answers `503` and the app shows nothing, so set it **before** deploying this version.
 
 ---
 
@@ -76,10 +80,26 @@ Actions run (09:07 Amman) or on a cold start.
 
 ---
 
+## 4. Dashboard (any browser)
+
+The first time you open the dashboard on a device it shows one screen: **Enter your device
+key**. Paste the same key and tap **Save**. It is stored on that device only. If the key on
+Render changes, the dashboard shows the screen again with "That device key was not accepted".
+CSV and Excel exports download with the key, so they work the same way.
+
+---
+
 ## Notes and limits
 
 - **Cold starts:** if Render is asleep, the first request takes about 30s. The Shortcut waits.
   The web app shows "Waking the server up". The keep-warm workflow makes this rare.
 - **Telegram still works** if you're on a VPN. Nothing was removed.
-- **Existing `/api/*` routes are still unauthenticated** (pre-existing). Only the new ingest and
-  notify routes require the key. See the PR description for the follow-up.
+- **What stays open without the key:** `/health` (uptime pings), `/webhook/telegram` (the bot
+  only answers your Telegram user id) and `GET /api/notify/vapid-public-key` (a public value
+  push needs). Everything else under `/api` needs the key. `backend/tests/test_auth.py` walks
+  every route, so a new route added without the key fails the tests.
+- **Telegram webhook secret (not yet on):** the webhook does not check Telegram's
+  `X-Telegram-Bot-Api-Secret-Token` header, so anyone who learns the URL can post fake updates
+  (they still have to fake your user id). Fix when convenient: add `TELEGRAM_WEBHOOK_SECRET`
+  on Render, reject requests whose header doesn't match, and re-register the webhook with
+  `secret_token` (that call needs a VPN).
