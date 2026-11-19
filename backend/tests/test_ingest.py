@@ -29,8 +29,8 @@ def _expenses(engine):
 
 
 class TestAuth:
-    def test_missing_key_401(self, client):
-        assert _post(client, "coffee 2.5", headers={}).status_code == 401
+    def test_missing_key_401(self, anon_client):
+        assert _post(anon_client, "coffee 2.5", headers={}).status_code == 401
 
     def test_wrong_key_401(self, client):
         assert _post(client, "coffee 2.5", headers={"X-API-Key": "nope"}).status_code == 401

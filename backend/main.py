@@ -6,7 +6,7 @@ import os
 
 import httpx
 import uvicorn
-from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlmodel import Session, select
@@ -132,14 +132,19 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
     return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
 # Routers
-app.include_router(expenses.router, prefix="/api")
-app.include_router(categories.router, prefix="/api")
-app.include_router(budgets.router, prefix="/api")
-app.include_router(recurring.router, prefix="/api")
-app.include_router(insights.router, prefix="/api")
-app.include_router(analytics.router, prefix="/api")
-app.include_router(exports.router, prefix="/api")
-app.include_router(ingest.router, prefix="/api")
+# Every /api route needs the device key (X-API-Key or Bearer = INGEST_API_KEY).
+# notify is keyed per route instead, so GET /api/notify/vapid-public-key stays
+# public. /health and /webhook/telegram are outside /api and stay open.
+# tests/test_auth.py fails if any new /api route is left without the key.
+_keyed = [Depends(ingest.require_ingest_key)]
+app.include_router(expenses.router, prefix="/api", dependencies=_keyed)
+app.include_router(categories.router, prefix="/api", dependencies=_keyed)
+app.include_router(budgets.router, prefix="/api", dependencies=_keyed)
+app.include_router(recurring.router, prefix="/api", dependencies=_keyed)
+app.include_router(insights.router, prefix="/api", dependencies=_keyed)
+app.include_router(analytics.router, prefix="/api", dependencies=_keyed)
+app.include_router(exports.router, prefix="/api", dependencies=_keyed)
+app.include_router(ingest.router, prefix="/api", dependencies=_keyed)
 app.include_router(notify.router, prefix="/api")
 app.include_router(health.router)
 

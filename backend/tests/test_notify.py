@@ -90,8 +90,8 @@ class TestSubscriptions:
         monkeypatch.delenv("VAPID_PUBLIC_KEY")
         assert client.get("/api/notify/vapid-public-key").status_code == 503
 
-    def test_subscribe_requires_key(self, client, engine):
-        r = client.post(
+    def test_subscribe_requires_key(self, anon_client, engine):
+        r = anon_client.post(
             "/api/notify/subscribe",
             json={"endpoint": "https://push.example/x", "keys": _browser_keys()},
         )
@@ -141,8 +141,8 @@ class TestDelivery:
 
 
 class TestRunDaily:
-    def test_requires_key(self, client):
-        assert client.post("/api/notify/run-daily").status_code == 401
+    def test_requires_key(self, anon_client):
+        assert anon_client.post("/api/notify/run-daily").status_code == 401
 
     def test_charges_due_rule_and_pushes(self, client, engine, push_calls):
         _subscribe(client)
