@@ -26,7 +26,7 @@ import { getCategories } from "../api/categories";
 import AddExpenseModal from "../components/expenses/AddExpenseModal";
 import EditExpenseModal from "../components/expenses/EditExpenseModal";
 import { formatCurrency } from "../utils/formatCurrency";
-import client from "../api/client";
+import { downloadExport, type ExportType } from "../api/exports";
 import { useCurrency } from "../context/CurrencyContext";
 
 import type { Expense, Category } from "../types";
@@ -177,12 +177,13 @@ export default function Transactions() {
     }
   }
 
-  function exportUrl(type: "csv" | "excel") {
-    const base = `${client.defaults.baseURL}/exports`;
-    const params = new URLSearchParams();
-    if (filterMonth) params.set("month", String(filterMonth));
-    if (filterYear) params.set("year", String(filterYear));
-    return `${base}/${type === "csv" ? "csv" : "excel"}?${params}`;
+  function handleExport(type: ExportType) {
+    const params: { month?: number; year?: number } = {};
+    if (filterMonth) params.month = Number(filterMonth);
+    if (filterYear) params.year = Number(filterYear);
+    downloadExport(type, params).catch(() => {
+      /* error toast or key screen handled by the API client */
+    });
   }
 
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -290,14 +291,14 @@ export default function Transactions() {
         />
 
         <button
-          onClick={() => window.open(exportUrl("csv"), "_blank")}
+          onClick={() => handleExport("csv")}
           className="flex items-center justify-center gap-2 px-4 h-11 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-700 text-sm transition-colors touch-manipulation"
         >
           <Download size={16} /> Export CSV
         </button>
 
         <button
-          onClick={() => window.open(exportUrl("excel"), "_blank")}
+          onClick={() => handleExport("excel")}
           className="flex items-center justify-center gap-2 px-4 h-11 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-700 text-sm transition-colors touch-manipulation"
         >
           <FileSpreadsheet size={16} /> Export Excel

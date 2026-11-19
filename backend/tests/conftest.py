@@ -27,6 +27,7 @@ from models import Category
 ALLOWED_USER_ID = 12345
 TEST_CHAT_ID = 99999
 TODAY = "2026-05-16"   # fixed date for predictable assertions
+TEST_API_KEY = "test-ingest-key"   # same value test_ingest/test_notify use
 
 DEFAULT_CATEGORIES = [
     ("Bills", "#DDA0DD", "📋"),
@@ -70,9 +71,26 @@ def engine():
     e.dispose()
 
 
-@pytest.fixture()
-def client(engine):
-    """TestClient with get_session overridden to use the test engine."""
+@pytest.fixture(autouse=True)
+def freeze_jordan_today(monkeypatch):
+    """Pin date-sensitive backend tests to the shared fixture date."""
+    from datetime import date
+
+    import main as main_module
+    import services.recurring_service as recurring_module
+
+    frozen_today = date.fromisoformat(TODAY)
+    monkeypatch.setattr(main_module, "_today_jordan", lambda: frozen_today)
+    monkeypatch.setattr(recurring_module, "_today_jordan", lambda: frozen_today)
+
+
+@pytest.fixture(autouse=True)
+def api_key_env(monkeypatch):
+    """Every /api route needs INGEST_API_KEY; tests run with a known value."""
+    monkeypatch.setenv("INGEST_API_KEY", TEST_API_KEY)
+
+
+def _test_client(engine, headers):
     def _override():
         with Session(engine) as session:
             yield session
@@ -80,9 +98,21 @@ def client(engine):
     app.dependency_overrides[get_session] = _override
     # raise_server_exceptions=False lets FastAPI's own exception handler
     # return 500 for unhandled errors rather than re-raising in the test.
-    with TestClient(app, raise_server_exceptions=False) as c:
+    with TestClient(app, raise_server_exceptions=False, headers=headers) as c:
         yield c
     app.dependency_overrides.clear()
+
+
+@pytest.fixture()
+def client(engine):
+    """TestClient on the test DB that sends the device key on every request."""
+    yield from _test_client(engine, {"X-API-Key": TEST_API_KEY})
+
+
+@pytest.fixture()
+def anon_client(engine):
+    """Same as client but sends no key, for testing that routes reject it."""
+    yield from _test_client(engine, {})
 
 
 @pytest.fixture()

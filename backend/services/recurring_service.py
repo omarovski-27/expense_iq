@@ -72,6 +72,18 @@ def process_recurring_expenses(db: Session) -> list[dict]:
     return charged
 
 
+def skip_paused_periods(rule: RecurringRule) -> None:
+    """On resume, move next_due_date past the periods the rule was paused for.
+
+    Paused periods were not charged by the provider, so they must not be
+    back-filled. A rule due today keeps today's charge. Missed runs while a
+    rule is *active* are still caught up by process_recurring_expenses.
+    """
+    today = _today_jordan()
+    while rule.next_due_date < today:
+        rule.next_due_date = _advance_date(rule.next_due_date, rule.frequency)
+
+
 # Fields a caller (Telegram bot or HTTP router) is allowed to patch on a rule.
 _RULE_EDITABLE_FIELDS = ("name", "amount", "category_id", "frequency", "next_due_date")
 

@@ -18,3 +18,11 @@ services:
         sync: false
       - key: TELEGRAM_ALLOWED_USER_ID
         sync: false
+      - key: INGEST_API_KEY
+        sync: false
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        sync: false

@@ -1,4 +1,4 @@
-# ExpenseIQ
+﻿# ExpenseIQ
 
 AI powered personal expense tracker
 
@@ -23,8 +23,10 @@ ExpenseIQ is a full stack personal finance app with a React PWA frontend, FastAP
 4. Transactions page with filtering by month, year, and category
 5. Budget tracking per category
 6. Recurring expense rules
-7. CSV and Excel export
-8. PWA installable on iPhone and Android via browser
+7. CSV and Excel export (downloaded with the device key)
+8. PWA installable on iPhone and Android, opening on a one-line quick-add screen (`/quick`) with web push for subscription charges
+9. Every `/api/*` route needs the device key (`INGEST_API_KEY`, sent as `X-API-Key`); the web app asks for it once per device. Open without it: `/health`, `/webhook/telegram`, `GET /api/notify/vapid-public-key`
+10. No-VPN capture: `POST /api/ingest` takes the same free text from an iOS Shortcut (Siri, Action Button, Back Tap) or the installed app. Setup: [docs/QUICK_CAPTURE.md](docs/QUICK_CAPTURE.md)
 
 ## Architecture
 
@@ -47,3 +49,5 @@ ExpenseIQ is a full stack personal finance app with a React PWA frontend, FastAP
 3. CORS_ORIGINS
 4. TELEGRAM_BOT_TOKEN
 5. TELEGRAM_ALLOWED_USER_ID
+6. INGEST_API_KEY (device key: required by every /api route; without it the API answers 503)
+7. VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT (web push; generate with `python backend/gen_vapid_keys.py`)

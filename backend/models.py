@@ -70,6 +70,15 @@ class AIInsight(SQLModel, table=True):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
+class PushSubscription(SQLModel, table=True):
+    """A browser/installed-app Web Push subscription (one per device)."""
+    id: Optional[int] = Field(default=None, primary_key=True)
+    endpoint: str = Field(unique=True, index=True)
+    p256dh: str
+    auth: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
 # ---------------------------------------------------------------------------
 # Non-table schemas (request / response)
 # ---------------------------------------------------------------------------

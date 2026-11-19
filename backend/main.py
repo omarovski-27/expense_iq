@@ -6,7 +6,7 @@ import os
 
 import httpx
 import uvicorn
-from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlmodel import Session, select
@@ -19,7 +19,8 @@ from services.recurring_service import (
     update_recurring_fields,
 )
 from services.expense_service import delete_expense, update_expense_fields
-from routers import analytics, budgets, categories, expenses, exports, health, insights, recurring
+from services.push_service import notify_charged
+from routers import analytics, budgets, categories, expenses, exports, health, ingest, insights, notify, recurring
 from services.telegram_service import (
     build_expense_payload,
     find_category_id,
@@ -90,6 +91,10 @@ async def lifespan(app: FastAPI):
             charged = []
 
     if charged:
+        with Session(engine) as push_session:
+            notify_charged(push_session, charged)
+
+    if charged:
         _telegram_token = os.getenv("TELEGRAM_BOT_TOKEN")
         _chat_id_str = os.getenv("TELEGRAM_ALLOWED_USER_ID")
         if _telegram_token and _chat_id_str:
@@ -118,6 +123,8 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    # Lets the web app read the export file name when it downloads with the key.
+    expose_headers=["Content-Disposition"],
 )
 
 
@@ -127,13 +134,20 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
     return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
 # Routers
-app.include_router(expenses.router, prefix="/api")
-app.include_router(categories.router, prefix="/api")
-app.include_router(budgets.router, prefix="/api")
-app.include_router(recurring.router, prefix="/api")
-app.include_router(insights.router, prefix="/api")
-app.include_router(analytics.router, prefix="/api")
-app.include_router(exports.router, prefix="/api")
+# Every /api route needs the device key (X-API-Key or Bearer = INGEST_API_KEY).
+# notify is keyed per route instead, so GET /api/notify/vapid-public-key stays
+# public. /health and /webhook/telegram are outside /api and stay open.
+# tests/test_auth.py fails if any new /api route is left without the key.
+_keyed = [Depends(ingest.require_ingest_key)]
+app.include_router(expenses.router, prefix="/api", dependencies=_keyed)
+app.include_router(categories.router, prefix="/api", dependencies=_keyed)
+app.include_router(budgets.router, prefix="/api", dependencies=_keyed)
+app.include_router(recurring.router, prefix="/api", dependencies=_keyed)
+app.include_router(insights.router, prefix="/api", dependencies=_keyed)
+app.include_router(analytics.router, prefix="/api", dependencies=_keyed)
+app.include_router(exports.router, prefix="/api", dependencies=_keyed)
+app.include_router(ingest.router, prefix="/api", dependencies=_keyed)
+app.include_router(notify.router, prefix="/api")
 app.include_router(health.router)
 
 
