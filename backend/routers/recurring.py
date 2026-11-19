@@ -105,6 +105,10 @@ def toggle_recurring(rule_id: int, session: Session = Depends(get_session)):
     if not rule:
         raise HTTPException(status_code=404, detail="Recurring rule not found")
     rule.is_active = not rule.is_active
+    if rule.is_active:
+        from services.recurring_service import skip_paused_periods
+
+        skip_paused_periods(rule)
     session.add(rule)
     session.commit()
     session.refresh(rule)

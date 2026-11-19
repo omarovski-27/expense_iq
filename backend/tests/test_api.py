@@ -516,6 +516,41 @@ class TestRecurringAutoCharge:
             updated_rule = s.get(RecurringRule, rule["id"])
         assert updated_rule.last_run_date is not None
 
+    def test_missed_periods_charge_once_each(self, client, engine):
+        """Active rule missed for 3 months: one charge per missed period, each
+        dated on its own due date; a second run the same day adds nothing."""
+        _make_rule(client, next_due_date="2026-03-16", name="Missed")  # TODAY = 2026-05-16
+        r1 = client.post("/api/recurring/run")
+        assert r1.json()["created"] == 3
+        assert client.post("/api/recurring/run").json()["created"] == 0
+        with Session(engine) as s:
+            dates = sorted(
+                str(e.date) for e in s.exec(
+                    __import__("sqlmodel").select(Expense).where(Expense.description == "Missed")
+                ).all()
+            )
+        assert dates == ["2026-03-16", "2026-04-16", "2026-05-16"]
+
+    def test_resume_skips_paused_periods(self, client, engine):
+        """Resuming a paused rule does not back-charge the paused months."""
+        rule = _make_rule(client, next_due_date="2026-02-20", is_active=False, name="Paused")
+        r = client.patch(f"/api/recurring/{rule['id']}/toggle")
+        assert r.json()["is_active"] is True
+        assert r.json()["next_due_date"] == "2026-05-20"  # next upcoming, not Feb
+        assert client.post("/api/recurring/run").json()["created"] == 0
+
+    def test_resume_on_due_day_keeps_todays_charge(self, client):
+        rule = _make_rule(client, next_due_date="2026-02-16", is_active=False)
+        r = client.patch(f"/api/recurring/{rule['id']}/toggle")
+        assert r.json()["next_due_date"] == TODAY
+        assert client.post("/api/recurring/run").json()["created"] == 1
+
+    def test_pause_leaves_due_date_unchanged(self, client):
+        rule = _make_rule(client, next_due_date="2026-02-16")
+        r = client.patch(f"/api/recurring/{rule['id']}/toggle")
+        assert r.json()["is_active"] is False
+        assert r.json()["next_due_date"] == "2026-02-16"
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Analytics
