@@ -1,7 +1,9 @@
 """Read a forwarded bank SMS and decide whether it is a spend to log.
 
-Built from real Arab Bank messages (Arabic purchase alerts, English CliQ
-credit alerts, eStatement notices). Mixed Arabic/English text can reach us in
+Built from real messages: Arab Bank (Arabic purchase alerts, English CliQ
+credit alerts, eStatement notices) and Bank al Etihad (English purchase
+alerts in two wordings, transfer security codes, outgoing CliQ transfers,
+promotions). Mixed Arabic/English text can reach us in
 a different character order than the phone displays it, so nothing here
 depends on word order: the amount, merchant, date and time are found by
 shape, wherever they sit.
@@ -22,13 +24,18 @@ _BIDI = re.compile("[‎‏‪-‮⁦-⁩؜﻿]")
 # Checked in this order; the first match decides. Credits and reversals come
 # before the purchase check because their texts can also mention a purchase.
 _SKIP_RULES: list[tuple[str, re.Pattern]] = [
-    ("otp", re.compile(r"\b(otp|one[- ]time|verification code|passcode)\b|رمز|كلمة (ال)?سر|كلمة المرور", re.I)),
+    ("otp", re.compile(r"\b(otp|one[- ]time|verification code|security code|passcode)\b|رمز|كلمة (ال)?سر|كلمة المرور", re.I)),
     ("declined", re.compile(r"declin|reject|unsuccessful|failed|insufficient|مرفوض|رفض|لم تتم|فشل|غير كاف", re.I)),
     ("refund", re.compile(r"refund|revers|cancel|استرداد|استرجاع|عكس|إلغاء|الغاء|مسترد", re.I)),
     ("credit", re.compile(r"credited|deposit|received|إيداع|ايداع|لحسابكم|وارد|دائن", re.I)),
     ("atm", re.compile(r"\batm\b|سحب نقدي|صراف", re.I)),
 ]
-_PURCHASE = re.compile(r"شراء|\bpurchase\b|\bpos\b", re.I)
+_PURCHASE = re.compile(r"شراء|\bpurchase\b|\bpos\b|\b(?:JOD|JD)\s+at\s", re.I)
+# Money you send by CliQ is spending too (Omar asked to log it). Incoming CliQ is
+# caught earlier by the "credit" rule.
+_CLIQ_OUT = re.compile(r"\bcliq transfer to\s+(.+?)\s*\.?\s*(?:available balance|balance\b|$)", re.I)
+# English alerts name the shop after "from" or "at", up to the balance or the end.
+_EN_MERCHANT = re.compile(r"\b(?:from|at)\s+(.+?)\s*\.?\s*(?:available balance|balance\b|$)", re.I)
 
 _AMOUNT = re.compile(r"(?:JOD|JD)\s*(\d[\d,]*(?:\.\d+)?)|(\d[\d,]*(?:\.\d+)?)\s*(?:JOD|JD)\b", re.I)
 _BALANCE = re.compile(r"(?:الرصيد|balance)\s*:?\s*$", re.I)
@@ -71,6 +78,9 @@ def _amount(text: str) -> Optional[float]:
 
 
 def _merchant(text: str) -> str:
+    m = _EN_MERCHANT.search(_AMOUNT.sub(" ", text))
+    if m and m.group(1).strip(" .*"):
+        return m.group(1).strip(" .")
     # Drop everything that is clearly not the shop name, keep the Latin words.
     cleaned = _MASK.sub(" ", _TIME.sub(" ", _DATE.sub(" ", _AMOUNT.sub(" ", text))))
     words = [w for w in _LATIN_WORD.findall(cleaned) if w.lower() not in _NOT_MERCHANT]
@@ -96,9 +106,12 @@ def parse_bank_sms(raw: str) -> SmsResult:
     for reason, pattern in _SKIP_RULES:
         if pattern.search(text):
             return SmsResult(skipped=reason)
-    if not _PURCHASE.search(text):
+    cliq = _CLIQ_OUT.search(text)
+    if not cliq and not _PURCHASE.search(text):
         return SmsResult(skipped="not_a_purchase")
     amount = _amount(text)
     if amount is None:
         return SmsResult(skipped="no_amount")
+    if cliq:
+        return SmsResult(amount=amount, merchant=f"CliQ to {cliq.group(1).strip(' .')}", date=_date(text))
     return SmsResult(amount=amount, merchant=_merchant(text) or "Card purchase", date=_date(text))

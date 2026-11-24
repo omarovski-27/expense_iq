@@ -1,6 +1,7 @@
 """Bank SMS capture (POST /api/ingest/sms).
 
-REAL_* texts are typed from Omar's Arab Bank screenshot (18 Nov 2026).
+REAL_* texts are typed from Omar's screenshots: Arab Bank (18 Nov 2026) and
+Bank al Etihad (24 Nov 2026; those messages are from 2023).
 SYNTHETIC_* texts are invented to cover message kinds we have no real
 sample of yet; replace them with real ones when they arrive.
 """
@@ -34,6 +35,18 @@ REAL_ESTATEMENT = (
     "Your eStatement has been issued for **2654. You can view it on Arabi Online "
     "or Arabi Mobile Tel 4600900"
 )
+ETIHAD_PURCHASE = "Purchase of JOD 7.313 from Patreon* Membership.\nAvailable balance: JOD 40.793."
+ETIHAD_PURCHASE_AT = "7.313 JOD at CKO*Patreon.\nAvailable balance: 33.483 JOD."
+ETIHAD_SECURITY_CODE = (
+    "Bank al Etihad Transfer Security Code: 615236\nThis code will be used to "
+    "perform a transfer of 28 JOD from your account"
+)
+ETIHAD_PROMO = (
+    "Book your tickets to the Amman Chamber Orchestra concert, an initiative of Bank al "
+    "Etihad Foundation, featuring MISK Dance Company https://etih.ad/e/ACOjune17"
+)
+# The recipient's name is hidden in the screenshot; the rest is real.
+ETIHAD_CLIQ_SENT = "28.000 JOD CliQ transfer to Test Person.\nAvailable balance: 5.480 JOD."
 SYNTHETIC_ARABIC_MERCHANT = (
     "تم قيد حركة شراء من حسابكم 0119*500 من سامح مول بمبلغ JOD 12.500 "
     "بتاريخ 15/05/2026 18:02 .الرصيد 40.000 دينار اردني."
@@ -89,6 +102,19 @@ class TestParser:
     def test_unknown_message_is_skipped(self):
         assert parse_bank_sms("Hello from Arab Bank").skipped == "not_a_purchase"
 
+    def test_etihad_purchases_both_wordings(self):
+        a, b = parse_bank_sms(ETIHAD_PURCHASE), parse_bank_sms(ETIHAD_PURCHASE_AT)
+        assert (a.skipped, a.amount, a.merchant, a.date) == (None, 7.313, "Patreon* Membership", None)
+        assert (b.skipped, b.amount, b.merchant) == (None, 7.313, "CKO*Patreon")
+
+    def test_etihad_cliq_sent_is_logged(self):
+        r = parse_bank_sms(ETIHAD_CLIQ_SENT)
+        assert (r.skipped, r.amount, r.merchant) == (None, 28.0, "CliQ to Test Person")
+
+    def test_etihad_code_and_promo_are_skipped(self):
+        assert parse_bank_sms(ETIHAD_SECURITY_CODE).skipped == "otp"
+        assert parse_bank_sms(ETIHAD_PROMO).skipped == "not_a_purchase"
+
     def test_hash_ignores_spacing_and_direction_marks(self):
         assert text_hash(REAL_PURCHASE) == text_hash("‏" + REAL_PURCHASE.replace(" ", "  "))
         assert normalize("a \n b") == "a b"
@@ -114,7 +140,8 @@ class TestEndpoint:
             assert len(s.exec(select(SmsIngest)).all()) == 1
 
     def test_skips_write_nothing(self, client, engine):
-        for text in [REAL_CLIQ_CREDIT, REAL_ESTATEMENT, *SYNTHETIC_SKIPS.values()]:
+        for text in [REAL_CLIQ_CREDIT, REAL_ESTATEMENT, ETIHAD_SECURITY_CODE, ETIHAD_PROMO,
+                     *SYNTHETIC_SKIPS.values()]:
             body = _sms(client, text).json()
             assert body["ok"] is True and body["skipped"]
         assert _expenses(engine) == []
@@ -131,6 +158,12 @@ class TestEndpoint:
                           category_id=bills.id, date=date(2026, 5, 1)))
             s.commit()
         assert _sms(client, REAL_PURCHASE_2).json()["expense"]["category"]["name"] == "Bills"
+
+    def test_etihad_purchase_without_date_is_logged_today(self, client, engine):
+        body = _sms(client, ETIHAD_PURCHASE_AT).json()
+        assert body["ok"] is True and "skipped" not in body
+        (e,) = _expenses(engine)
+        assert (e.amount, e.merchant, e.date.isoformat()) == (7.313, "CKO*Patreon", TODAY)
 
     def test_unknown_shop_goes_to_other(self, client):
         body = _sms(client, SYNTHETIC_ARABIC_MERCHANT).json()

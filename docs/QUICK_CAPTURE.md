@@ -8,7 +8,7 @@ go to `POST /api/ingest/sms` (section 5).
 |---|---|---|
 | iOS Shortcut (Siri / Action Button / Back Tap) | Fastest capture, no app open | Device key |
 | Installed web app (`/quick`) | Typing, category chips, undo, notifications | Device key, Home Screen install |
-| Bank SMS automation (section 5) | Card spend with zero typing | Device key, one iPhone automation |
+| Bank SMS (section 5) | Card spend: copy the bank text, tap the phone's back | Device key, Back Tap |
 
 ---
 
@@ -90,36 +90,38 @@ CSV and Excel exports download with the key, so they work the same way.
 
 ---
 
-## 5. Bank SMS: card payments log themselves
+## 5. Bank SMS: copy the text, tap the back of the phone
 
-Every Arab Bank card payment text ("تم قيد حركة شراء ...") becomes an expense with the shop,
-amount and date from the message, marked `via sms` in notes. Everything else the bank sends is
-ignored and nothing is saved: one-time codes, declined or reversed payments, money received
-(including CliQ transfers in), ATM withdrawals, statements and balance notices. The same message
-sent twice is logged once.
+Works with **Arab Bank** (Arabic purchase alerts) and **Bank al Etihad** (English purchase
+alerts in both wordings, and CliQ transfers you send). A payment becomes an expense with the
+shop, amount and date (today if the message has none), marked `via sms` in notes. Everything
+else is ignored and nothing is saved: security codes, declined or reversed payments, money
+received (including CliQ in), ATM withdrawals, statements, promotions. The same message sent
+twice is logged once.
 
 Category: the category you last used for that shop, else a category whose name appears in the
 shop name, else **Other**. Fix it once in the app and later payments at that shop follow.
 
-Shortcuts app → **Automation** → **+** → **Message**:
+**Why not fully automatic:** iPhone message automations need a Sender chosen from Contacts.
+Banks send from a name ("ArabBank", "BankEtihad"), not a number, so they cannot be saved as a
+contact the automation can pick (tried 24 Nov 2026).
 
-1. **Message Contains:** `شراء`. **Sender:** the bank, as it appears in Messages (for example
-   "Arab Bank").
-2. Choose **Run Immediately** and turn off **Notify When Run**, so it works with no tap.
-   If your iOS version only offers "Run After Confirmation", pick that; you then tap once per payment.
-3. Add **Get Contents of URL**
+Shortcuts app → **+** → name it **Log bank text**, then add:
+
+1. **Get Clipboard**
+2. **Get Contents of URL**
    - URL: `https://expense-iq-ypan.onrender.com/api/ingest/sms`
    - Method: **POST**
    - Headers: `X-API-Key` = *your key*
-   - Request Body: **JSON**, one field: `text` (Text) = *Shortcut Input → Message → Content*
-4. Optional: **Get Dictionary Value** `message` → **Show Notification**, to see
-   "Logged Careem Food: 5.220 JD (Food)."
+   - Request Body: **JSON**, one field: `text` (Text) = *Clipboard*
+3. **Get Dictionary Value**: Key `message` from *Contents of URL*.
+4. **Show Notification**: *Dictionary Value*.
 
-Test it: send the URL the text of an old payment message from the Shortcut editor's play button.
+Settings → Accessibility → Touch → **Back Tap** → **Double Tap** → **Log bank text**.
+(If Double Tap already runs "Log expense", use **Triple Tap** for this one.)
+
+Each payment: press and hold the bank text → **Copy** → double-tap the back of the phone.
 Cash spending still goes through Siri or the web app (sections 2 and 3).
-
-Not covered yet: CliQ transfers you **send** are meant to be logged, but no sample of that
-message exists yet, so they are currently ignored. Forward one to add them.
 
 ---
 
