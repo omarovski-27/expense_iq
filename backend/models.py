@@ -70,6 +70,20 @@ class AIInsight(SQLModel, table=True):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
+class SmsIngest(SQLModel, table=True):
+    """Bank SMS already turned into an expense, keyed by a hash of its text.
+
+    A new table (not a column on Expense) because create_all adds new tables
+    in production but never alters existing ones.
+    """
+    id: Optional[int] = Field(default=None, primary_key=True)
+    text_hash: str = Field(unique=True, index=True)
+    # Plain id, not a foreign key, so deleting the expense in the app still
+    # works on Postgres (the hash stays, so a resent SMS is not re-added).
+    expense_id: Optional[int] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
 class PushSubscription(SQLModel, table=True):
     """A browser/installed-app Web Push subscription (one per device)."""
     id: Optional[int] = Field(default=None, primary_key=True)

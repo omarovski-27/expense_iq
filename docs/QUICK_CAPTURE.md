@@ -1,13 +1,14 @@
 # Quick capture without Telegram
 
-Three ways to log an expense with no VPN, all hitting one endpoint, `POST /api/ingest`.
-It runs the same parser as the Telegram bot, so `coffee 2.5 food` works everywhere.
+Ways to log an expense with no VPN. Typed or spoken text goes to `POST /api/ingest`, which runs
+the same parser as the Telegram bot, so `coffee 2.5 food` works everywhere. Bank text messages
+go to `POST /api/ingest/sms` (section 5).
 
 | Channel | Best for | Needs |
 |---|---|---|
 | iOS Shortcut (Siri / Action Button / Back Tap) | Fastest capture, no app open | Device key |
 | Installed web app (`/quick`) | Typing, category chips, undo, notifications | Device key, Home Screen install |
-| Bank SMS automation | Card spend with zero typing | *Pending: parser tuned to your bank's SMS* |
+| Bank SMS automation (section 5) | Card spend with zero typing | Device key, one iPhone automation |
 
 ---
 
@@ -86,6 +87,39 @@ The first time you open the dashboard on a device it shows one screen: **Enter y
 key**. Paste the same key and tap **Save**. It is stored on that device only. If the key on
 Render changes, the dashboard shows the screen again with "That device key was not accepted".
 CSV and Excel exports download with the key, so they work the same way.
+
+---
+
+## 5. Bank SMS: card payments log themselves
+
+Every Arab Bank card payment text ("تم قيد حركة شراء ...") becomes an expense with the shop,
+amount and date from the message, marked `via sms` in notes. Everything else the bank sends is
+ignored and nothing is saved: one-time codes, declined or reversed payments, money received
+(including CliQ transfers in), ATM withdrawals, statements and balance notices. The same message
+sent twice is logged once.
+
+Category: the category you last used for that shop, else a category whose name appears in the
+shop name, else **Other**. Fix it once in the app and later payments at that shop follow.
+
+Shortcuts app → **Automation** → **+** → **Message**:
+
+1. **Message Contains:** `شراء`. **Sender:** the bank, as it appears in Messages (for example
+   "Arab Bank").
+2. Choose **Run Immediately** and turn off **Notify When Run**, so it works with no tap.
+   If your iOS version only offers "Run After Confirmation", pick that; you then tap once per payment.
+3. Add **Get Contents of URL**
+   - URL: `https://expense-iq-ypan.onrender.com/api/ingest/sms`
+   - Method: **POST**
+   - Headers: `X-API-Key` = *your key*
+   - Request Body: **JSON**, one field: `text` (Text) = *Shortcut Input → Message → Content*
+4. Optional: **Get Dictionary Value** `message` → **Show Notification**, to see
+   "Logged Careem Food: 5.220 JD (Food)."
+
+Test it: send the URL the text of an old payment message from the Shortcut editor's play button.
+Cash spending still goes through Siri or the web app (sections 2 and 3).
+
+Not covered yet: CliQ transfers you **send** are meant to be logged, but no sample of that
+message exists yet, so they are currently ignored. Forward one to add them.
 
 ---
 

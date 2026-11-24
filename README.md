@@ -27,6 +27,7 @@ ExpenseIQ is a full stack personal finance app with a React PWA frontend, FastAP
 8. PWA installable on iPhone and Android, opening on a one-line quick-add screen (`/quick`) with web push for subscription charges
 9. Every `/api/*` route needs the device key (`INGEST_API_KEY`, sent as `X-API-Key`); the web app asks for it once per device. Open without it: `/health`, `/webhook/telegram`, `GET /api/notify/vapid-public-key`
 10. No-VPN capture: `POST /api/ingest` takes the same free text from an iOS Shortcut (Siri, Action Button, Back Tap) or the installed app. Setup: [docs/QUICK_CAPTURE.md](docs/QUICK_CAPTURE.md)
+11. Bank SMS capture: `POST /api/ingest/sms` turns Arab Bank card-payment texts into expenses (an iPhone message automation sends them), skips codes, refunds, credits and ATM withdrawals, and logs each message once. Setup: [docs/QUICK_CAPTURE.md](docs/QUICK_CAPTURE.md) section 5
 
 ## Architecture
 

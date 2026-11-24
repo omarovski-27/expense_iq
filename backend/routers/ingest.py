@@ -21,10 +21,11 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from database import get_session
-from models import Category, Expense, ExpenseRead
+from models import Category, Expense, ExpenseRead, SmsIngest
 from services.telegram_service import (
     build_expense_payload,
     parse_date_ddmmyyyy,
@@ -35,6 +36,7 @@ from tz import today_jordan
 router = APIRouter(prefix="/ingest", tags=["ingest"])
 
 INGEST_SOURCE_NOTE = "via ingest"
+SMS_SOURCE_NOTE = "via sms"
 UNDO_WINDOW = timedelta(minutes=15)
 PARSE_HELP = "Couldn't read that. Try: coffee 2.5 food"
 
@@ -164,5 +166,81 @@ def ingest(body: IngestRequest, session: Session = Depends(get_session)):
     return {
         "ok": True,
         "message": message,
+        "expense": ExpenseRead.model_validate(expense).model_dump(mode="json"),
+    }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# POST /ingest/sms — a bank SMS forwarded by an iPhone Shortcuts automation
+# ─────────────────────────────────────────────────────────────────────────────
+
+class SmsRequest(BaseModel):
+    text: str = Field(..., min_length=1, max_length=1000)
+
+
+def _category_for(session: Session, merchant: str) -> tuple[Optional[int], str]:
+    """Same shop as before -> the category it last had (so a fix in the app
+    sticks). Otherwise a category named in the shop name ("Careem Food" ->
+    Food). Otherwise Other."""
+    last = session.exec(
+        select(Expense)
+        .where(func.lower(Expense.merchant) == merchant.lower())
+        .where(Expense.category_id.is_not(None))
+        .order_by(Expense.id.desc())
+        .limit(1)
+    ).first()
+    categories = session.exec(select(Category).order_by(Category.name)).all()
+    if last is not None:
+        for c in categories:
+            if c.id == last.category_id:
+                return c.id, c.name
+    words = {w.lower() for w in merchant.split()}
+    for c in categories:
+        if c.name.lower() in words:
+            return c.id, c.name
+    for c in categories:
+        if c.name.lower() == "other":
+            return c.id, c.name
+    return (categories[0].id, categories[0].name) if categories else (None, "")
+
+
+@router.post("/sms", dependencies=[Depends(require_ingest_key)])
+def ingest_sms(body: SmsRequest, session: Session = Depends(get_session)):
+    from services.sms_service import parse_bank_sms, text_hash
+
+    parsed = parse_bank_sms(body.text)
+    if parsed.skipped:
+        return {"ok": True, "skipped": parsed.skipped, "message": "Not a payment, skipped."}
+
+    digest = text_hash(body.text)
+    if session.exec(select(SmsIngest).where(SmsIngest.text_hash == digest)).first():
+        return {"ok": True, "skipped": "duplicate", "message": "Already logged."}
+
+    today = today_jordan()
+    target = parsed.date if parsed.date and parsed.date <= today else today
+    category_id, category_name = _category_for(session, parsed.merchant)
+
+    expense = Expense(
+        amount=parsed.amount,
+        description=parsed.merchant,
+        merchant=parsed.merchant,
+        category_id=category_id,
+        date=target,
+        notes=SMS_SOURCE_NOTE,
+    )
+    session.add(expense)
+    session.flush()
+    session.add(SmsIngest(text_hash=digest, expense_id=expense.id))
+    try:
+        session.commit()
+    except IntegrityError:  # the same SMS arrived twice at the same moment
+        session.rollback()
+        return {"ok": True, "skipped": "duplicate", "message": "Already logged."}
+    session.refresh(expense)
+    _ = expense.category
+
+    return {
+        "ok": True,
+        "message": f"Logged {parsed.merchant}: {parsed.amount:.3f} JD ({category_name}).",
         "expense": ExpenseRead.model_validate(expense).model_dump(mode="json"),
     }
